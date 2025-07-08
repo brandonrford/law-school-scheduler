@@ -192,7 +192,14 @@
         import { getFirestore, doc, collection, onSnapshot, addDoc, updateDoc, deleteDoc, setLogLevel, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- CONFIG & CONSTANTS ---
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const firebaseConfig = {
+            apiKey: "AIzaSyAl5j28ERUYog1FgVcTqs2SEWMG-rt8fI4",
+            authDomain: "law-school-scheduler.firebaseapp.com",
+            projectId: "law-school-scheduler",
+            storageBucket: "law-school-scheduler.firebasestorage.app",
+            messagingSenderId: "292569639844",
+            appId: "1:292569639844:web:162d8b1dd0e943140caf31"
+        };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'course-planner-default';
         const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
         const COLORS = ['bg-red-500', 'bg-yellow-500', 'bg-green-500', 'bg-blue-500', 'bg-purple-500', 'bg-pink-500', 'bg-teal-500', 'bg-orange-500'];
