@@ -229,6 +229,7 @@
         const semesterTabsContainer = document.getElementById('semester-tabs');
         const planControls = document.getElementById('plan-controls');
         const noInProgressSemestersMsg = document.getElementById('no-in-progress-semesters');
+        const semesterFilter = document.getElementById('semesterFilter');
 
         // --- FIREBASE & STATE ---
         let app, auth, db, userId;
@@ -327,7 +328,7 @@
         
         // --- RENDER FUNCTIONS ---
         function renderCourses() {
-            const selectedSemester = document.getElementById('semesterFilter').value;
+            const selectedSemester = semesterFilter.value;
             const coursesToRender = selectedSemester === 'all' ? allCourses : allCourses.filter(c => c.semester === selectedSemester);
             courseListEl.innerHTML = '';
             if (coursesToRender.length === 0) {
@@ -448,7 +449,7 @@
                     block.style.height = `${height}px`;
                     block.style.left = `calc(60px + ${dayIndex} * (100% - 60px) / 5)`;
                     block.style.width = `calc(((100% - 60px) / 5) - 4px)`;
-                    block.innerHTML = `<strong>${course.courseCode}</strong><p>${formatTimeAMPM(course.startTime)} - ${formatTimeAMPM(course.endTime)}</p>`;
+                    block.innerHTML = `<strong class="block truncate">${course.courseCode} - ${course.courseName || ''}</strong><p class="text-xs">${formatTimeAMPM(course.startTime)} - ${formatTimeAMPM(course.endTime)}</p>`;
                     block.dataset.id = course.id;
                     block.addEventListener('click', () => showScheduleModal(course));
                     scheduleGrid.appendChild(block);
@@ -500,7 +501,7 @@
         }
 
         function updateCalculations() {
-            const selectedSemester = document.getElementById('semesterFilter').value;
+            const selectedSemester = semesterFilter.value;
             
             const { gpa: cumulativeGpa, creditsEarned, creditsForGpa } = calculateLawSchoolGpa(allCourses);
             document.getElementById('cumulativeGpa').textContent = cumulativeGpa.toFixed(3);
@@ -547,9 +548,8 @@
         }
 
         function updateSemesterFilter() {
-            const semesterFilter = document.getElementById('semesterFilter');
-            const semesters = [...new Set(allCourses.map(c => c.semester).filter(Boolean))].sort().reverse();
             const currentVal = semesterFilter.value;
+            const semesters = [...new Set(allCourses.map(c => c.semester).filter(Boolean))].sort().reverse();
             while (semesterFilter.options.length > 1) { semesterFilter.remove(1); }
             semesters.forEach(semester => {
                 const option = document.createElement('option');
@@ -735,7 +735,10 @@
                 } catch (error) { console.error("Error deleting course: ", error); }
             }
         });
-        document.getElementById('semesterFilter').addEventListener('change', updateCalculations);
+        semesterFilter.addEventListener('change', () => {
+            renderCourses();
+            updateCalculations();
+        });
 
         document.getElementById('addCourseToScheduleBtn').addEventListener('click', () => showScheduleModal());
         document.getElementById('cancelScheduleBtn').addEventListener('click', hideScheduleModal);
@@ -766,7 +769,8 @@
             const scheduledCourseData = { 
                 id: document.getElementById('scheduledCourseId').value, 
                 courseId: courseId, 
-                courseCode: selectedCourse.courseCode, 
+                courseCode: selectedCourse.courseCode,
+                courseName: selectedCourse.courseName,
                 days: selectedDays, 
                 startTime: document.getElementById('startTime').value, 
                 endTime: document.getElementById('endTime').value, 
