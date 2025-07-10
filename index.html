@@ -708,7 +708,7 @@
 
         // --- GEMINI API ---
         async function callGemini(payload) {
-            const proxyUrl = "https://your-worker-name.your-subdomain.workers.dev"; // IMPORTANT: Replace with your Cloudflare Worker URL
+            const proxyUrl = "https://gemini-worker.brandonford227.workers.dev/"; // IMPORTANT: Replace with your Cloudflare Worker URL
             try {
                 const response = await fetch(proxyUrl, {
                     method: 'POST',
