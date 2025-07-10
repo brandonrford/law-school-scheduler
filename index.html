@@ -302,7 +302,7 @@
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
-                setLogLevel('debug');
+                setLogLevel('off');
 
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
