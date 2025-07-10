@@ -197,15 +197,16 @@
             </div>
              <!-- Benchmarks -->
             <div class="glass-panel p-6 mb-6">
-                <div class="flex justify-between items-center">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                     <h2 class="text-xl font-bold text-white">Class Rank Benchmarks</h2>
-                    <div>
+                    <div class="flex items-center mt-4 sm:mt-0">
                         <label for="yearSelector" class="mr-2 text-sm font-medium text-[#D4D4D4]">My Year:</label>
-                        <select id="yearSelector" class="rounded-md border-[#555555] bg-[#333333] text-white shadow-sm focus:ring-[#FDB719] focus:border-[#FDB719] px-3 py-2">
+                        <select id="yearSelector" class="rounded-md border-[#555555] bg-[#333333] text-white shadow-sm focus:ring-[#FDB719] focus:border-[#FDB719] px-3 py-2 mr-4">
                             <option value="1L">1L</option>
                             <option value="2L">2L</option>
                             <option value="3L">3L</option>
                         </select>
+                        <button id="analyzeCareersBtn" class="bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-purple-500">✨ Analyze Career Paths</button>
                     </div>
                 </div>
                 <div id="benchmarkDisplay" class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
@@ -241,6 +242,7 @@
                             <h3 class="text-sm font-semibold text-[#989898] uppercase tracking-wider">Plan Credits</h3>
                             <p id="planCredits" class="text-2xl font-bold text-[#FDB719]">0</p>
                         </div>
+                        <button id="autoScheduleBtn" class="bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-purple-500">✨ Auto-Generate Schedule</button>
                         <button id="manageScheduleBtn" class="w-full md:w-auto bg-[#FDB719] text-[#000000] font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-[#FFD17D]">Manage Schedule</button>
                     </div>
                 </div>
@@ -278,6 +280,19 @@
         </div>
     </div>
     
+    <!-- AI Response Modal -->
+    <div id="aiResponseModal" class="modal-backdrop hidden">
+        <div class="modal-content p-8">
+            <h2 id="aiResponseTitle" class="text-xl font-bold text-white mb-4">✨ AI Assistant</h2>
+            <div id="aiResponseContent" class="prose max-w-none min-h-[200px] flex justify-center items-center text-gray-300">
+                <!-- Loading spinner or content goes here -->
+            </div>
+            <div class="flex justify-end mt-6">
+                <button type="button" id="closeAiResponseModalBtn" class="bg-[#989898] text-[#000000] font-semibold py-2 px-4 rounded-lg hover:bg-[#D4D4D4]">Close</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -312,6 +327,9 @@
         const courseModal = document.getElementById('courseModal');
         const planModal = document.getElementById('planModal');
         const checklistModal = document.getElementById('checklistModal');
+        const aiResponseModal = document.getElementById('aiResponseModal');
+        const aiResponseTitle = document.getElementById('aiResponseTitle');
+        const aiResponseContent = document.getElementById('aiResponseContent');
         const planSelector = document.getElementById('planSelector');
         const scheduleGrid = document.getElementById('schedule-grid');
         const loadingCoursesDiv = document.getElementById('loadingCourses');
