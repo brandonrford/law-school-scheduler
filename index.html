@@ -211,6 +211,7 @@
             appId: "1:292569639844:web:162d8b1dd0e943140caf31"
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'course-planner-default';
+        window.appId = appId;
         const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
         const COLORS = ['bg-red-500', 'bg-yellow-500', 'bg-green-500', 'bg-blue-500', 'bg-purple-500', 'bg-pink-500', 'bg-teal-500', 'bg-orange-500'];
         const tailwindToHex = {
@@ -260,11 +261,13 @@
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
+                window.db = db;
                 setLogLevel('debug');
 
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         userId = user.uid;
+                        window.userId = userId
                         document.getElementById('status').textContent = 'Connected';
                         document.getElementById('status').classList.add('text-green-600');
                         document.getElementById('userIdDisplay').textContent = userId;
