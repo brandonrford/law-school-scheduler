@@ -325,6 +325,7 @@
         const checklistContainer = document.getElementById('checklist-container');
         const tabCourses = document.getElementById('tab-courses');
         const tabScheduler = document.getElementById('tab-scheduler');
+        const autoScheduleBtn = document.getElementById('autoScheduleBtn');
 
         // --- FIREBASE & STATE ---
         let app, auth, db, userId;
@@ -705,6 +706,23 @@
             return start1 < end2 && end1 > start2;
         }
 
+        // --- GEMINI API ---
+        async function callGemini(payload) {
+            const proxyUrl = "https://gemini-worker.brandonford227.workers.dev/"; // IMPORTANT: Replace with your Cloudflare Worker URL
+            try {
+                const response = await fetch(proxyUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`API call failed with status: ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                return null;
+            }
+        }
+
         // --- MODALS & FORMS ---
         function showCourseModal(course = null) {
             const form = document.getElementById('courseForm');
@@ -951,6 +969,94 @@
             listenForScheduledCourseUpdates();
         });
         
+        autoScheduleBtn.addEventListener('click', async () => {
+            if (!activeSemester) {
+                alert("Please select a semester tab first.");
+                return;
+            }
+
+            const coursesForSemester = allCourses.filter(c => c.status === 'In Progress' && c.semester === activeSemester);
+            if (coursesForSemester.length === 0) {
+                alert("No 'In Progress' courses to schedule for this semester.");
+                return;
+            }
+            
+            aiLoadingModal.classList.remove('hidden');
+
+            const courseInfo = coursesForSemester.map(c => ({
+                id: c.id,
+                name: c.courseName,
+                credits: c.credits
+            }));
+
+            const prompt = `
+                You are an expert law school scheduler. Your task is to create an optimal, conflict-free weekly schedule.
+                Input Courses: ${JSON.stringify(courseInfo)}
+                Constraints:
+                - Schedule classes between 8:00 AM (08:00) and 6:00 PM (18:00), Monday to Friday.
+                - Attempt to leave a lunch break around noon.
+                - Avoid back-to-back classes if possible, but it's not a strict requirement.
+                - A 3-credit course should meet for ~150 minutes per week (e.g., two 75-min sessions).
+                - A 4-credit course should meet for ~200 minutes per week (e.g., two 100-min sessions).
+                - A 2-credit course should meet for ~100 minutes per week (e.g., one 100-min session or two 50-min sessions).
+                - All times must be in "HH:mm" format.
+                - Your output MUST be a valid JSON array of objects, with no other text.
+            `;
+
+            const payload = {
+                contents: [{ role: "user", parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "ARRAY",
+                        items: {
+                            type: "OBJECT",
+                            properties: {
+                                courseId: { type: "STRING" },
+                                days: { type: "ARRAY", items: { type: "STRING" } },
+                                startTime: { type: "STRING" },
+                                endTime: { type: "STRING" }
+                            },
+                            required: ["courseId", "days", "startTime", "endTime"]
+                        }
+                    }
+                }
+            };
+
+            const result = await callGemini(payload);
+
+            if (result && result.candidates) {
+                const generatedSchedule = JSON.parse(result.candidates[0].content.parts[0].text);
+                const planName = `AI Generated Plan ${new Date().toLocaleTimeString()}`;
+                const newPlan = await addDoc(plansCollectionRef, { name: planName, semester: activeSemester });
+                const batch = writeBatch(db);
+                const scheduledCoursesRef = collection(db, `artifacts/${appId}/users/${userId}/schedulePlans/${newPlan.id}/scheduledCourses`);
+                
+                generatedSchedule.forEach(item => {
+                    const courseDetails = allCourses.find(c => c.id === item.courseId);
+                    if (courseDetails) {
+                        const docRef = doc(scheduledCoursesRef);
+                        batch.set(docRef, {
+                            courseId: item.courseId,
+                        });
+                        // Also update the main course document with the new times/days
+                        const mainCourseDocRef = doc(db, `artifacts/${appId}/users/${userId}/courses`, item.courseId);
+                        batch.update(mainCourseDocRef, {
+                            days: item.days,
+                            startTime: item.startTime,
+                            endTime: item.endTime
+                        });
+                    }
+                });
+                await batch.commit();
+                alert("AI has generated and saved a new schedule plan!");
+            } else {
+                alert("The AI could not generate a schedule. Please try again.");
+            }
+            
+            aiLoadingModal.classList.add('hidden');
+        });
+
         // --- INITIAL LOAD ---
         initializeFirebase();
         generateScheduleGrid();
