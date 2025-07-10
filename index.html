@@ -1045,6 +1045,35 @@
                 aiResponseContent.textContent = "Sorry, the AI could not generate a schedule at this time. Please try again later.";
             }
         });
+
+        analyzeCareersBtn.addEventListener('click', async () => {
+            const completedCourses = allCourses.filter(c => c.status === 'Complete' && !isNaN(parseFloat(c.grade)));
+            if (completedCourses.length === 0) {
+                alert("Please complete at least one course with a numerical grade to analyze career paths.");
+                return;
+            }
+            const courseList = completedCourses.map(c => `${c.courseName} (Grade: ${c.grade})`).join(', ');
+            
+            aiResponseModal.classList.remove('hidden');
+            aiResponseTitle.textContent = "Analyzing Career Paths...";
+            aiResponseContent.innerHTML = '<div class="spinner"></div>';
+            
+            const prompt = `I am a law student. Here is a list of my completed courses and grades: ${courseList}. Based on my performance, what are 3 potential legal career paths that might be a good fit for me? For each path, provide a one-sentence explanation of why it's a good fit. Keep the response concise and format it as a simple, bulleted list.`;
+            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+            const responseText = await callGemini(payload);
+            
+            aiResponseTitle.textContent = "AI Career Path Analysis";
+            if (responseText) {
+                let html = responseText
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/^(•|\*)\s/gm, '<li>')
+                    .replace(/\n/g, '<br>');
+                aiResponseContent.innerHTML = `<div class="text-left">${html}</div>`;
+            } else {
+                aiResponseContent.textContent = "Sorry, the AI could not generate a response at this time. Please try again later.";
+            }
+        });
         
         document.getElementById('closeAiResponseModalBtn').addEventListener('click', () => {
             aiResponseModal.classList.add('hidden');
