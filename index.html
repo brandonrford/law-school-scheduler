@@ -1004,29 +1004,15 @@
             aiResponseTitle.textContent = "Generating Schedule...";
             aiResponseContent.innerHTML = '<div class="spinner"></div>';
 
-            const courseInfo = coursesForSemester.map(c => ({
-                name: c.courseName,
-                credits: c.credits,
-                days: c.days,
-                startTime: c.startTime,
-                endTime: c.endTime,
-            }));
+            const courseInfo = coursesForSemester.map(c => {
+                return `- ${c.courseName} (${c.credits} credits). Scheduled for ${c.days.join(', ')} from ${c.startTime} to ${c.endTime}.`;
+            }).join('\n');
 
             const prompt = `
-                You are an expert law school scheduler. Your task is to create an optimal, conflict-free weekly schedule based on the following courses.
+                Create an optimal, conflict-free weekly schedule based on the following law school courses.
                 
                 Courses:
-                ${JSON.stringify(courseInfo, null, 2)}
-
-                Constraints & Preferences:
-                - Schedule classes strictly between 8:00 AM (08:00) and 6:00 PM (18:00), Monday to Friday.
-                - Prioritize any existing day/time information provided with a course.
-                - If no time is provided, create a logical schedule.
-                - A 3-credit course should meet for ~150 minutes per week (e.g., two 75-min sessions).
-                - A 4-credit course should meet for ~200 minutes per week (e.g., two 100-min sessions).
-                - A 2-credit course should meet for ~100 minutes per week (e.g., one 100-min session or two 50-min sessions).
-                - Try to leave a one-hour lunch break around noon each day.
-                - Avoid back-to-back classes if possible.
+                ${courseInfo}
 
                 Please provide the suggested schedule in a clear, human-readable list format, grouped by day and using markdown for formatting.
             `;
