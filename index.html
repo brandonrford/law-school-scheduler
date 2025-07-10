@@ -148,6 +148,9 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .prose ul { list-style-position: inside; margin-left: 1rem; }
+        .prose li { margin-bottom: 0.5rem; }
+        .prose p { margin-bottom: 1rem; }
     </style>
 </head>
 <body class="bg-[#0a0a0a] text-[#D4D4D4]">
@@ -270,11 +273,16 @@
         </div>
     </div>
     
-    <!-- AI Loading Modal -->
-    <div id="aiLoadingModal" class="modal-backdrop hidden">
-        <div class="modal-content p-8 flex flex-col items-center">
-            <div class="spinner"></div>
-            <p class="mt-4 text-white">AI is generating your schedule...</p>
+    <!-- AI Response Modal -->
+    <div id="aiResponseModal" class="modal-backdrop hidden">
+        <div class="modal-content p-8">
+            <h2 id="aiResponseTitle" class="text-xl font-bold text-white mb-4">✨ AI Assistant</h2>
+            <div id="aiResponseContent" class="prose max-w-none min-h-[200px] flex justify-center items-center text-gray-300">
+                <!-- Loading spinner or content goes here -->
+            </div>
+            <div class="flex justify-end mt-6">
+                <button type="button" id="closeAiResponseModalBtn" class="bg-[#989898] text-[#000000] font-semibold py-2 px-4 rounded-lg hover:bg-[#D4D4D4]">Close</button>
+            </div>
         </div>
     </div>
 
@@ -310,7 +318,9 @@
         const courseModal = document.getElementById('courseModal');
         const planModal = document.getElementById('planModal');
         const checklistModal = document.getElementById('checklistModal');
-        const aiLoadingModal = document.getElementById('aiLoadingModal');
+        const aiResponseModal = document.getElementById('aiResponseModal');
+        const aiResponseTitle = document.getElementById('aiResponseTitle');
+        const aiResponseContent = document.getElementById('aiResponseContent');
         const planSelector = document.getElementById('planSelector');
         const scheduleGrid = document.getElementById('schedule-grid');
         const loadingCoursesDiv = document.getElementById('loadingCourses');
@@ -720,12 +730,7 @@
                 if (result.candidates && result.candidates.length > 0 &&
                     result.candidates[0].content && result.candidates[0].content.parts &&
                     result.candidates[0].content.parts.length > 0) {
-                    // Extract JSON from the text response
-                    const textResponse = result.candidates[0].content.parts[0].text;
-                    const jsonMatch = textResponse.match(/```json\n([\s\S]*?)\n```/);
-                    if (jsonMatch && jsonMatch[1]) {
-                        return JSON.parse(jsonMatch[1]);
-                    }
+                    return result.candidates[0].content.parts[0].text;
                 }
                 return null;
             } catch (error) {
