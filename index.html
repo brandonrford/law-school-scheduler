@@ -1058,7 +1058,7 @@
             aiResponseTitle.textContent = "Analyzing Career Paths...";
             aiResponseContent.innerHTML = '<div class="spinner"></div>';
             
-            const prompt = `I am a law student. Here is a list of my completed courses and grades: ${courseList}. Based on my performance, what are 3 potential legal career paths that might be a good fit for me? For each path, provide a one-sentence explanation of why it's a good fit. Keep the response concise and format it as a simple, bulleted list.`;
+            const prompt = `I am a law student. Based on these courses and grades, what are my academic strengths? Suggest 3 legal career paths that align with these strengths, and provide a one-sentence explanation for each. Format the response as a simple, bulleted list. My courses: ${courseList}.`;
             const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
             const responseText = await callGemini(payload);
             
