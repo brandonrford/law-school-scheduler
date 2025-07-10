@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mizzou Law School Planner</title>
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/x-icon" href="/assets/favicon.png">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -191,15 +191,16 @@
             </div>
              <!-- Benchmarks -->
             <div class="glass-panel p-6 mb-6">
-                <div class="flex justify-between items-center">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                     <h2 class="text-xl font-bold text-white">Class Rank Benchmarks</h2>
-                    <div>
+                    <div class="flex items-center mt-4 sm:mt-0">
                         <label for="yearSelector" class="mr-2 text-sm font-medium text-[#D4D4D4]">My Year:</label>
-                        <select id="yearSelector" class="rounded-md border-[#555555] bg-[#333333] text-white shadow-sm focus:ring-[#FDB719] focus:border-[#FDB719] px-3 py-2">
+                        <select id="yearSelector" class="rounded-md border-[#555555] bg-[#333333] text-white shadow-sm focus:ring-[#FDB719] focus:border-[#FDB719] px-3 py-2 mr-4">
                             <option value="1L">1L</option>
                             <option value="2L">2L</option>
                             <option value="3L">3L</option>
                         </select>
+                        <button id="analyzeCareersBtn" class="bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-purple-500">✨ Analyze Career Paths</button>
                     </div>
                 </div>
                 <div id="benchmarkDisplay" class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
@@ -296,10 +297,12 @@
             apiKey: "AIzaSyAl5j28ERUYog1FgVcTqs2SEWMG-rt8fI4",
             authDomain: "law-school-scheduler.firebaseapp.com",
             projectId: "law-school-scheduler",
-            storageBucket: "law-school-scheduler.firebasestorage.app",
+            storageBucket: "law-school-scheduler.appspot.com",
             messagingSenderId: "292569639844",
             appId: "1:292569639844:web:162d8b1dd0e943140caf31"
         };
+        const proxyUrl = "https://gemini-worker.brandonford227.workers.dev/";
+        
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'course-planner-default';
         const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
         const COLORS = ['bg-[#FDB719]', 'bg-[#FFD17D]', 'bg-[#989898]', 'bg-[#FFDFA5]', 'bg-[#D4D4D4]', 'bg-[#FFEDCF]'];
@@ -336,6 +339,7 @@
         const tabCourses = document.getElementById('tab-courses');
         const tabScheduler = document.getElementById('tab-scheduler');
         const autoScheduleBtn = document.getElementById('autoScheduleBtn');
+        const analyzeCareersBtn = document.getElementById('analyzeCareersBtn');
 
         // --- FIREBASE & STATE ---
         let app, auth, db, userId;
@@ -718,7 +722,6 @@
 
         // --- GEMINI API ---
         async function callGemini(payload) {
-            const proxyUrl = "https://gemini-worker.brandonford227.workers.dev/"; // IMPORTANT: Replace with your Cloudflare Worker URL
             try {
                 const response = await fetch(proxyUrl, {
                     method: 'POST',
@@ -997,56 +1000,54 @@
                 return;
             }
             
-            aiLoadingModal.classList.remove('hidden');
+            aiResponseModal.classList.remove('hidden');
+            aiResponseTitle.textContent = "Generating Schedule...";
+            aiResponseContent.innerHTML = '<div class="spinner"></div>';
 
             const courseInfo = coursesForSemester.map(c => ({
-                id: c.id,
                 name: c.courseName,
-                credits: c.credits
+                credits: c.credits,
+                days: c.days,
+                startTime: c.startTime,
+                endTime: c.endTime,
             }));
 
             const prompt = `
-                You are an expert law school scheduler. Your task is to create an optimal, conflict-free weekly schedule.
-                Input Courses: ${JSON.stringify(courseInfo)}
-                Constraints:
-                - Schedule classes between 8:00 AM (08:00) and 6:00 PM (18:00), Monday to Friday.
-                - Attempt to leave a lunch break around noon.
-                - Avoid back-to-back classes if possible, but it's not a strict requirement.
+                You are an expert law school scheduler. Your task is to create an optimal, conflict-free weekly schedule based on the following courses.
+                
+                Courses:
+                ${JSON.stringify(courseInfo, null, 2)}
+
+                Constraints & Preferences:
+                - Schedule classes strictly between 8:00 AM (08:00) and 6:00 PM (18:00), Monday to Friday.
+                - Prioritize any existing day/time information provided with a course.
+                - If no time is provided, create a logical schedule.
                 - A 3-credit course should meet for ~150 minutes per week (e.g., two 75-min sessions).
                 - A 4-credit course should meet for ~200 minutes per week (e.g., two 100-min sessions).
                 - A 2-credit course should meet for ~100 minutes per week (e.g., one 100-min session or two 50-min sessions).
-                - All times must be in "HH:mm" format.
-                - Your output MUST be a valid JSON array of objects, wrapped in markdown code fences (\`\`\`json ... \`\`\`), with no other text.
+                - Try to leave a one-hour lunch break around noon each day.
+                - Avoid back-to-back classes if possible.
+
+                Please provide the suggested schedule in a clear, human-readable list format, grouped by day and using markdown for formatting.
             `;
             const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-            const generatedSchedule = await callGemini(payload);
-
-            if (generatedSchedule) {
-                const planName = `AI Generated Plan ${new Date().toLocaleTimeString()}`;
-                const newPlan = await addDoc(plansCollectionRef, { name: planName, semester: activeSemester });
-                const batch = writeBatch(db);
-                const scheduledCoursesRef = collection(db, `artifacts/${appId}/users/${userId}/schedulePlans/${newPlan.id}/scheduledCourses`);
-                
-                generatedSchedule.forEach(item => {
-                    const courseDetails = allCourses.find(c => c.id === item.courseId);
-                    if (courseDetails) {
-                        const docRef = doc(scheduledCoursesRef);
-                        batch.set(docRef, { courseId: item.courseId });
-                        const mainCourseDocRef = doc(db, `artifacts/${appId}/users/${userId}/courses`, item.courseId);
-                        batch.update(mainCourseDocRef, {
-                            days: item.days,
-                            startTime: item.startTime,
-                            endTime: item.endTime
-                        });
-                    }
-                });
-                await batch.commit();
-                alert("AI has generated and saved a new schedule plan!");
-            } else {
-                alert("The AI could not generate a schedule. Please try again.");
-            }
+            const responseText = await callGemini(payload);
             
-            aiLoadingModal.classList.add('hidden');
+            aiResponseTitle.textContent = "AI Schedule Suggestion";
+            if (responseText) {
+                let html = responseText
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/^(•|\*)\s/gm, '<li>')
+                    .replace(/\n/g, '<br>');
+                aiResponseContent.innerHTML = `<div class="text-left">${html}</div>`;
+            } else {
+                aiResponseContent.textContent = "Sorry, the AI could not generate a schedule at this time. Please try again later.";
+            }
+        });
+        
+        document.getElementById('closeAiResponseModalBtn').addEventListener('click', () => {
+            aiResponseModal.classList.add('hidden');
         });
 
         // --- INITIAL LOAD ---
