@@ -211,7 +211,6 @@
             appId: "1:292569639844:web:162d8b1dd0e943140caf31"
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'course-planner-default';
-        window.appId = appId;
         const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
         const COLORS = ['bg-red-500', 'bg-yellow-500', 'bg-green-500', 'bg-blue-500', 'bg-purple-500', 'bg-pink-500', 'bg-teal-500', 'bg-orange-500'];
         const tailwindToHex = {
@@ -261,13 +260,11 @@
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
-                window.db = db;
                 setLogLevel('debug');
 
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         userId = user.uid;
-                        window.userId = userId
                         document.getElementById('status').textContent = 'Connected';
                         document.getElementById('status').classList.add('text-green-600');
                         document.getElementById('userIdDisplay').textContent = userId;
@@ -453,17 +450,22 @@
         function renderSchedule() {
             scheduleGrid.querySelectorAll('.course-block').forEach(el => el.remove());
             if (!currentPlanId) return;
-            scheduledCourses.forEach(course => {
-                const start = timeToMinutes(course.startTime);
-                const end = timeToMinutes(course.endTime);
-                if (!course.startTime || !course.endTime || end <= start) return;
+            scheduledCourses.forEach(scheduledCourse => {
+                const courseDetails = allCourses.find(c => c.id === scheduledCourse.courseId);
+                if (!courseDetails) return;
+
+                const start = timeToMinutes(courseDetails.startTime);
+                const end = timeToMinutes(courseDetails.endTime);
+                if (!courseDetails.startTime || !courseDetails.endTime || end <= start) return;
+                
                 const duration = end - start;
                 const top = ((start - (7 * 60)) / 30) * 25 + 30;
                 const height = (duration / 30) * 25;
-                course.days.forEach(day => {
+
+                courseDetails.days.forEach(day => {
                     const dayIndex = DAYS.indexOf(day);
                     if (dayIndex === -1) return;
-                    const bgColorClass = courseColorMap[course.courseId] || 'bg-gray-500';
+                    const bgColorClass = courseColorMap[courseDetails.id] || 'bg-gray-500';
                     const hexColor = tailwindToHex[bgColorClass] || '#6b7280';
                     const textColorClass = getTextColorForBg(hexColor);
                     const block = document.createElement('div');
@@ -472,8 +474,8 @@
                     block.style.height = `${height}px`;
                     block.style.left = `calc(60px + ${dayIndex} * (100% - 60px) / 5 + 2px)`;
                     block.style.width = `calc(((100% - 60px) / 5) - 4px)`;
-                    block.innerHTML = `<strong class="block truncate">${course.courseCode}</strong><p class="text-xs">${formatTimeAMPM(course.startTime)} - ${formatTimeAMPM(course.endTime)}</p>`;
-                    block.dataset.id = course.id;
+                    block.innerHTML = `<strong class="block truncate">${courseDetails.courseCode} - ${courseDetails.courseName}</strong><p class="text-xs">${formatTimeAMPM(courseDetails.startTime)} - ${formatTimeAMPM(courseDetails.endTime)}</p>`;
+                    block.dataset.id = scheduledCourse.id;
                     scheduleGrid.appendChild(block);
                 });
             });
@@ -609,6 +611,7 @@
         }
 
         function checkConflict(course1, course2) {
+            if (!course1.days || !course2.days || !course1.startTime || !course2.startTime) return false;
             const hasCommonDay = course1.days.some(day => course2.days.includes(day));
             if (!hasCommonDay) return false;
 
@@ -700,7 +703,7 @@
 
                 const div = document.createElement('div');
                 div.className = `p-3 rounded-lg border ${hasConflict ? 'bg-gray-100 text-gray-400' : 'bg-white'}`;
-                const dayString = course.days ? course.days.map(d => d.substring(0,2)).join('') : 'N/A';
+                const dayString = course.days && course.days.length > 0 ? course.days.map(d => d.substring(0,2)).join('') : 'N/A';
                 const timeString = course.startTime && course.endTime ? `${formatTimeAMPM(course.startTime)} - ${formatTimeAMPM(course.endTime)}` : 'No time set';
 
                 div.innerHTML = `
@@ -719,9 +722,8 @@
                 checkbox.addEventListener('change', async (e) => {
                     const courseId = e.target.dataset.courseId;
                     if (e.target.checked) {
-                        const course = allCourses.find(c => c.id === courseId);
                         const scheduleDocRef = collection(db, `artifacts/${appId}/users/${userId}/schedulePlans/${currentPlanId}/scheduledCourses`);
-                        await addDoc(scheduleDocRef, { ...course, courseId: course.id });
+                        await addDoc(scheduleDocRef, { courseId: courseId });
                     } else {
                         const docToDelete = scheduledCourses.find(sc => sc.courseId === courseId);
                         if (docToDelete) {
@@ -751,11 +753,11 @@
         document.getElementById('courseStatus').addEventListener('change', (e) => {
             const gradeInput = document.getElementById('grade');
             const inProgressFields = document.getElementById('inProgressFields');
-            const isDisabled = e.target.value === 'In Progress';
+            const isDisabled = e.target.value !== 'Complete';
             gradeInput.disabled = isDisabled;
-            gradeInput.classList.toggle('bg-gray-100', !isDisabled);
-            inProgressFields.style.display = isDisabled ? 'block' : 'none';
-            if (!isDisabled) {
+            gradeInput.classList.toggle('bg-gray-100', isDisabled);
+            inProgressFields.style.display = !isDisabled ? 'none' : 'block';
+            if (isDisabled) {
                 gradeInput.value = '';
             } else {
                  document.getElementById('startTime').value = '';
