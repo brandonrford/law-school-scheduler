@@ -170,7 +170,6 @@
                 <div id="auth-container" class="mt-4 md:mt-0 text-right">
                      <div id="user-info" class="hidden items-center">
                         <span id="userName" class="text-white font-semibold mr-4"></span>
-                        <img id="userPhoto" class="w-8 h-8 rounded-full mr-4" alt="User Photo">
                         <button id="signOutBtn" class="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-500 transition">Sign Out</button>
                      </div>
                      <button id="signInBtn" class="bg-cyan-500 text-black font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-cyan-400 transition">Sign in with Google</button>
@@ -290,6 +289,7 @@
             messagingSenderId: "292569639844",
             appId: "1:292569639844:web:162d8b1dd0e943140caf31"
         };
+        
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'course-planner-default';
         const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
         const COLORS = ['bg-cyan-500', 'bg-blue-500', 'bg-indigo-500', 'bg-purple-500', 'bg-pink-500', 'bg-teal-500'];
@@ -326,7 +326,6 @@
         const signOutBtn = document.getElementById('signOutBtn');
         const userInfoDiv = document.getElementById('user-info');
         const userNameEl = document.getElementById('userName');
-        const userPhotoEl = document.getElementById('userPhoto');
 
         // --- FIREBASE & STATE ---
         let app, auth, db, userId;
@@ -359,7 +358,6 @@
                             signInBtn.classList.remove('hidden');
                         } else {
                             userNameEl.textContent = user.displayName;
-                            userPhotoEl.src = user.photoURL;
                             userInfoDiv.classList.remove('hidden');
                             signInBtn.classList.add('hidden');
                         }
@@ -961,7 +959,13 @@
         signInBtn.addEventListener('click', async () => {
             const provider = new GoogleAuthProvider();
             try {
-                await signInWithPopup(auth, provider);
+                if (auth.currentUser && auth.currentUser.isAnonymous) {
+                    const credential = await signInWithPopup(auth, provider);
+                    // This logic is simplified to not merge accounts.
+                    // A new sign-in will trigger onAuthStateChanged and load the new user's data.
+                } else {
+                    await signInWithPopup(auth, provider);
+                }
             } catch (error) {
                 console.error("Error during sign-in:", error);
             }
@@ -970,6 +974,7 @@
         signOutBtn.addEventListener('click', async () => {
             try {
                 await signOut(auth);
+                await signInAnonymously(auth);
             } catch (error) {
                 console.error("Error during sign-out:", error);
             }
