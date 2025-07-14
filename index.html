@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Law School Course & GPA Planner</title>
-    <link rel="icon" type="image/x-icon" href="/assets/favicon.png">
+    <title>Mizzou Law School Planner</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="/assets/favicon.png">
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -18,28 +18,18 @@
             left: 0;
             width: 100%;
             height: 100vh;
-            background: linear-gradient(135deg, #0d1117 0%, #000000 100%);
+            background: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
             z-index: -1;
-            overflow: hidden;
-        }
-        .star {
-            position: absolute;
-            background-color: white;
-            border-radius: 50%;
-            animation: twinkle 5s infinite;
-        }
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.2; }
-            50% { opacity: 0.8; }
         }
         .orb {
             position: absolute;
             border-radius: 50%;
-            filter: blur(120px);
-            opacity: 0.3;
+            background: #FDB719;
+            filter: blur(100px);
+            opacity: 0.15;
         }
-        .orb1 { width: 450px; height: 450px; background: #581c87; animation: move1 25s infinite alternate; }
-        .orb2 { width: 350px; height: 350px; background: #06b6d4; animation: move2 20s infinite alternate; }
+        .orb1 { width: 400px; height: 400px; animation: move1 25s infinite alternate; }
+        .orb2 { width: 300px; height: 300px; animation: move2 20s infinite alternate; }
         @keyframes move1 {
             0% { transform: translate(10vw, -10vh); }
             100% { transform: translate(70vw, 50vh); }
@@ -49,12 +39,12 @@
             100% { transform: translate(20vw, 10vh); }
         }
 
-        .table-container, .schedule-container, .todo-board-container {
+        .table-container, .schedule-container {
             max-height: 65vh;
             overflow-y: auto;
         }
         .glass-panel {
-            background: rgba(30, 30, 30, 0.4);
+            background: rgba(30, 30, 30, 0.4); /* Darker, less opaque */
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -87,16 +77,10 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 1rem;
             box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-            padding: 2.5rem;
+            padding: 2.5rem; /* Increased padding */
             transform: translateY(10px) scale(0.98);
             transition: transform 0.3s ease, opacity 0.3s ease;
             opacity: 0;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
         }
         .modal-backdrop:not(.hidden) .modal-content {
             transform: translateY(0) scale(1);
@@ -113,21 +97,21 @@
             text-align: right;
             padding-right: 10px;
             font-size: 10px;
-            color: #a0aec0;
+            color: #989898; /* Black Tint 2 */
         }
         .day-header {
             text-align: center;
             font-weight: 600;
             position: sticky;
             top: 0;
-            background: rgba(23, 25, 35, 0.7);
+            background: rgba(30, 30, 30, 0.7);
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
             z-index: 10;
         }
         .grid-cell {
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid rgba(152, 152, 152, 0.2);
+            border-left: 1px solid rgba(152, 152, 152, 0.2);
         }
         .grid-cell:nth-of-type(2n) {
             border-top-style: dashed;
@@ -145,18 +129,19 @@
             cursor: pointer;
         }
         .semester-tab.active {
-            border-color: #06b6d4; /* Cyan */
-            color: #06b6d4;
-            background-color: rgba(6, 182, 212, 0.1);
+            border-color: #FDB719; /* Mizzou Gold */
+            color: #FDB719;
+            background-color: rgba(253, 183, 25, 0.1);
         }
         input[type="time"] {
             color-scheme: dark;
         }
     </style>
 </head>
-<body class="bg-[#0a0a0a] text-gray-300">
+<body class="bg-[#0a0a0a] text-[#D4D4D4]">
     <div id="bg-wrap">
-        <!-- Stars will be injected here by JS -->
+        <div class="orb orb1"></div>
+        <div class="orb orb2"></div>
     </div>
 
     <div id="app" class="container mx-auto p-4 md:p-8 relative z-10">
@@ -165,22 +150,18 @@
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
                 <div>
                     <h1 class="text-3xl font-bold text-white">Law School Course & GPA Planner</h1>
-                    <p class="text-gray-400 mt-1">Your comprehensive tool for academic planning.</p>
+                    <p class="text-[#989898] mt-1">Your comprehensive tool for academic planning.</p>
                 </div>
-                <div id="auth-container" class="mt-4 md:mt-0 text-right">
-                     <div id="user-info" class="hidden items-center">
-                        <span id="userName" class="text-white font-semibold mr-4"></span>
-                        <button id="signOutBtn" class="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-500 transition">Sign Out</button>
-                     </div>
-                     <button id="signInBtn" class="bg-cyan-500 text-black font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-cyan-400 transition">Sign in with Google</button>
+                <div id="auth-status" class="mt-4 md:mt-0 text-right">
+                     <p class="text-xs text-[#989898]">User ID: <span id="userIdDisplay" class="font-mono">Loading...</span></p>
+                     <p class="text-xs text-[#989898]">Status: <span id="status" class="font-semibold">Connecting...</span></p>
                 </div>
             </div>
             <!-- Tabs -->
-            <div class="border-b border-gray-700/50">
+            <div class="border-b border-[#555555]">
                 <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-                    <button id="tab-courses" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-cyan-500 text-cyan-400">My Courses & GPA</button>
-                    <button id="tab-scheduler" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-500">Schedule Planner</button>
-                    <button id="tab-todo" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-500">To-Do Board</button>
+                    <button id="tab-courses" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-[#FDB719] text-[#FDB719]">My Courses & GPA</button>
+                    <button id="tab-scheduler" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent text-[#989898] hover:text-[#D4D4D4] hover:border-gray-500">Schedule Planner</button>
                 </nav>
             </div>
         </div>
@@ -188,18 +169,18 @@
         <!-- Courses View -->
         <div id="view-courses">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 text-center">
-                <div class="glass-panel p-4"><h3 class="text-sm font-semibold text-gray-400 uppercase">Credits Earned</h3><p id="totalCredits" class="text-3xl font-bold text-white">0</p></div>
-                <div class="glass-panel p-4"><h3 class="text-sm font-semibold text-gray-400 uppercase">Cumulative GPA</h3><p id="cumulativeGpa" class="text-3xl font-bold text-cyan-400">0.00</p></div>
-                <div class="glass-panel p-4"><h3 class="text-sm font-semibold text-gray-400 uppercase">Filtered Semester GPA</h3><p id="semesterGpa" class="text-3xl font-bold text-cyan-400">0.00</p></div>
-                <div id="graduationStatusContainer" class="glass-panel p-4"><h3 class="text-sm font-semibold text-gray-400 uppercase">Graduation Status</h3><p id="graduationStatus" class="text-3xl font-bold text-white">-</p></div>
+                <div class="glass-panel p-4"><h3 class="text-sm font-semibold text-[#989898] uppercase">Credits Earned</h3><p id="totalCredits" class="text-3xl font-bold text-white">0</p></div>
+                <div class="glass-panel p-4"><h3 class="text-sm font-semibold text-[#989898] uppercase">Cumulative GPA</h3><p id="cumulativeGpa" class="text-3xl font-bold text-[#FDB719]">0.00</p></div>
+                <div class="glass-panel p-4"><h3 class="text-sm font-semibold text-[#989898] uppercase">Filtered Semester GPA</h3><p id="semesterGpa" class="text-3xl font-bold text-[#FDB719]">0.00</p></div>
+                <div id="graduationStatusContainer" class="glass-panel p-4"><h3 class="text-sm font-semibold text-[#989898] uppercase">Graduation Status</h3><p id="graduationStatus" class="text-3xl font-bold text-white">-</p></div>
             </div>
              <!-- Benchmarks -->
             <div class="glass-panel p-6 mb-6">
                 <div class="flex justify-between items-center">
                     <h2 class="text-xl font-bold text-white">Class Rank Benchmarks</h2>
                     <div>
-                        <label for="yearSelector" class="mr-2 text-sm font-medium text-gray-300">My Year:</label>
-                        <select id="yearSelector" class="rounded-md border-gray-700/50 bg-gray-900/50 text-white shadow-sm focus:ring-cyan-500 focus:border-cyan-500 px-3 py-2">
+                        <label for="yearSelector" class="mr-2 text-sm font-medium text-[#D4D4D4]">My Year:</label>
+                        <select id="yearSelector" class="rounded-md border-[#555555] bg-[#333333] text-white shadow-sm focus:ring-[#FDB719] focus:border-[#FDB719] px-3 py-2">
                             <option value="1L">1L</option>
                             <option value="2L">2L</option>
                             <option value="3L">3L</option>
@@ -212,68 +193,52 @@
             </div>
 
             <div class="flex flex-col md:flex-row justify-between items-center mb-4">
-                <div class="flex items-center space-x-2"><label for="semesterFilter" class="text-sm font-medium text-gray-300">Filter by Semester:</label><select id="semesterFilter" class="rounded-md border-gray-700/50 bg-gray-900/50 text-white shadow-sm focus:ring-cyan-500 focus:border-cyan-500 px-3 py-2"><option value="all">All Semesters</option></select></div>
-                <button id="addCourseBtn" class="mt-4 md:mt-0 w-full md:w-auto bg-cyan-500 text-black font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-cyan-400 transition">Add New Course</button>
+                <div class="flex items-center space-x-2"><label for="semesterFilter" class="text-sm font-medium text-[#D4D4D4]">Filter by Semester:</label><select id="semesterFilter" class="rounded-md border-[#555555] bg-[#333333] text-white shadow-sm focus:ring-[#FDB719] focus:border-[#FDB719] px-3 py-2"><option value="all">All Semesters</option></select></div>
+                <button id="addCourseBtn" class="mt-4 md:mt-0 w-full md:w-auto bg-[#FDB719] text-[#000000] font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-[#FFD17D] transition">Add New Course</button>
             </div>
-            <div class="glass-panel"><div class="table-container"><table class="w-full text-sm text-left text-gray-300"><thead class="text-xs text-gray-400 uppercase bg-gray-900/50 sticky top-0"><tr><th scope="col" class="px-6 py-3">Course Code</th><th scope="col" class="px-6 py-3">Course Name</th><th scope="col" class="px-6 py-3 text-center">Credits</th><th scope="col" class="px-6 py-3">Grade</th><th scope="col" class="px-6 py-3">Status</th><th scope="col" class="px-6 py-3">Semester</th><th scope="col" class="px-6 py-3 text-right">Actions</th></tr></thead><tbody id="course-list" class="divide-y divide-gray-700/50"></tbody></table></div><div id="loadingCourses" class="text-center p-8 text-gray-400">Loading courses...</div></div>
+            <div class="glass-panel"><div class="table-container"><table class="w-full text-sm text-left text-[#D4D4D4]"><thead class="text-xs text-[#989898] uppercase bg-[#333333]/70 sticky top-0"><tr><th scope="col" class="px-6 py-3">Course Code</th><th scope="col" class="px-6 py-3">Course Name</th><th scope="col" class="px-6 py-3 text-center">Credits</th><th scope="col" class="px-6 py-3">Grade</th><th scope="col" class="px-6 py-3">Status</th><th scope="col" class="px-6 py-3">Semester</th><th scope="col" class="px-6 py-3 text-right">Actions</th></tr></thead><tbody id="course-list" class="divide-y divide-[#555555]"></tbody></table></div><div id="loadingCourses" class="text-center p-8 text-[#989898]">Loading courses...</div></div>
         </div>
 
         <!-- Scheduler View -->
         <div id="view-scheduler" class="hidden">
              <div class="glass-panel p-6 mb-6">
                 <h2 class="text-xl font-bold text-white mb-4">Semester Plans</h2>
-                <div id="scheduler-semester-tabs-container" class="border-b border-gray-700/50 mb-4">
-                    <nav id="scheduler-semester-tabs" class="-mb-px flex space-x-6" aria-label="Semesters">
+                <div id="semester-tabs-container" class="border-b border-[#555555] mb-4">
+                    <nav id="semester-tabs" class="-mb-px flex space-x-6" aria-label="Semesters">
                         <!-- Semester tabs will be injected here -->
                     </nav>
                 </div>
                 <div id="plan-controls" class="flex flex-col md:flex-row justify-between items-center hidden">
                     <div class="flex items-center space-x-4">
-                        <label for="planSelector" class="text-sm font-medium text-gray-300">Current Plan:</label>
-                        <select id="planSelector" class="rounded-md border-gray-700/50 bg-gray-900/50 text-white shadow-sm focus:ring-cyan-500 focus:border-cyan-500 px-3 py-2"></select>
-                        <button id="addPlanBtn" class="text-cyan-400 hover:text-cyan-300 text-sm font-medium">+ New Plan</button>
+                        <label for="planSelector" class="text-sm font-medium text-[#D4D4D4]">Current Plan:</label>
+                        <select id="planSelector" class="rounded-md border-[#555555] bg-[#333333] text-white shadow-sm focus:ring-[#FDB719] focus:border-[#FDB719] px-3 py-2"></select>
+                        <button id="addPlanBtn" class="text-[#FDB719] hover:text-[#FFD17D] text-sm font-medium">+ New Plan</button>
                         <button id="deletePlanBtn" class="text-red-500 hover:text-red-400 text-sm font-medium hidden">Delete Plan</button>
                     </div>
                     <div class="flex items-center space-x-6 mt-4 md:mt-0">
                         <div class="text-center">
-                            <h3 class="text-sm font-semibold text-gray-400 uppercase tracking-wider">Plan Credits</h3>
-                            <p id="planCredits" class="text-2xl font-bold text-cyan-400">0</p>
+                            <h3 class="text-sm font-semibold text-[#989898] uppercase tracking-wider">Plan Credits</h3>
+                            <p id="planCredits" class="text-2xl font-bold text-[#FDB719]">0</p>
                         </div>
-                        <button id="manageScheduleBtn" class="w-full md:w-auto bg-cyan-500 text-black font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-cyan-400">Manage Schedule</button>
+                        <button id="manageScheduleBtn" class="w-full md:w-auto bg-[#FDB719] text-[#000000] font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-[#FFD17D]">Manage Schedule</button>
                     </div>
                 </div>
-                <div id="no-in-progress-semesters-scheduler" class="text-center text-gray-400 py-4">Add a course with status "In Progress" to create a schedule plan.</div>
+                <div id="no-in-progress-semesters" class="text-center text-[#989898] py-4">Add a course with status "In Progress" to create a schedule plan.</div>
             </div>
             <div class="glass-panel p-2 schedule-container">
                 <div id="schedule-grid" class="schedule-grid">
                     <!-- Grid lines and labels will be generated by JS -->
                 </div>
-                 <div id="loadingScheduler" class="text-center p-8 text-gray-400">Loading schedule...</div>
-            </div>
-        </div>
-
-        <!-- To-Do View -->
-        <div id="view-todo" class="hidden">
-            <div class="glass-panel p-6 mb-6">
-                 <h2 class="text-xl font-bold text-white mb-4">To-Do Board</h2>
-                <div id="todo-semester-tabs-container" class="border-b border-gray-700/50 mb-4">
-                    <nav id="todo-semester-tabs" class="-mb-px flex space-x-6" aria-label="Semesters">
-                        <!-- Semester tabs for To-Do will be injected here -->
-                    </nav>
-                </div>
-                 <div id="no-in-progress-semesters-todo" class="text-center text-gray-400 py-4">Add a course with status "In Progress" to create a to-do list.</div>
-            </div>
-            <div id="todo-board-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 todo-board-container">
-                <!-- To-Do lists will be injected here -->
+                 <div id="loadingScheduler" class="text-center p-8 text-[#989898]">Loading schedule...</div>
             </div>
         </div>
     </div>
 
     <!-- Course Modal -->
-    <div id="courseModal" class="modal-backdrop hidden"><div class="modal-content"><h2 id="modalTitle" class="text-xl font-bold text-white mb-4">Add New Course</h2><form id="courseForm"><input type="hidden" id="courseId"><div class="mb-4"><label for="courseCode" class="block text-sm font-medium text-gray-300">Course Code</label><input type="text" id="courseCode" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-800 text-white shadow-sm focus:border-cyan-500 focus:ring-cyan-500 px-3 py-2" required placeholder="e.g., LAW 6010"></div><div class="mb-4"><label for="courseName" class="block text-sm font-medium text-gray-300">Course Name</label><input type="text" id="courseName" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-800 text-white shadow-sm focus:border-cyan-500 focus:ring-cyan-500 px-3 py-2" required placeholder="e.g., Torts"></div><div class="mb-4"><label for="credits" class="block text-sm font-medium text-gray-300]">Credits</label><input type="number" id="credits" min="0" step="0.5" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-800 text-white shadow-sm focus:border-cyan-500 focus:ring-cyan-500 px-3 py-2" required placeholder="e.g., 3"></div><div class="mb-4"><label for="semester" class="block text-sm font-medium text-gray-300]">Semester</label><input type="text" id="semester" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-800 text-white shadow-sm focus:border-cyan-500 focus:ring-cyan-500 px-3 py-2" required placeholder="e.g., Fall 2025"></div><div class="mb-4"><label for="courseStatus" class="block text-sm font-medium text-gray-300]">Status</label><select id="courseStatus" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-800 text-white shadow-sm focus:border-cyan-500 focus:ring-cyan-500 px-3 py-2"><option value="In Progress">In Progress</option><option value="Complete">Complete</option></select></div><div id="inProgressFields"><div class="mb-4"><label class="block text-sm font-medium text-gray-300]">Days</label><div id="courseDays" class="mt-2 grid grid-cols-3 sm:grid-cols-5 gap-2"></div></div><div class="grid grid-cols-2 gap-4 mb-4"><div class="mb-4"><label for="startTime" class="block text-sm font-medium text-gray-300]">Start Time</label><input type="time" id="startTime" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-800 text-white shadow-sm focus:border-cyan-500 focus:ring-cyan-500 px-3 py-2"></div><div class="mb-4"><label for="endTime" class="block text-sm font-medium text-gray-300]">End Time</label><input type="time" id="endTime" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-800 text-white shadow-sm focus:border-cyan-500 focus:ring-cyan-500 px-3 py-2"></div></div></div><div class="mb-6"><label for="grade" class="block text-sm font-medium text-gray-300]">Grade</label><input type="text" id="grade" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-800 text-white shadow-sm focus:border-cyan-500 focus:ring-cyan-500 px-3 py-2" placeholder="65-100, S, or U"></div><div class="flex justify-end space-x-2"><button type="button" id="cancelBtn" class="bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-gray-400">Cancel</button><button type="button" id="saveCourseBtn" class="bg-cyan-500 text-black font-semibold py-2 px-4 rounded-lg hover:bg-cyan-400">Save Course</button></div></form></div></div>
+    <div id="courseModal" class="modal-backdrop hidden"><div class="modal-content"><h2 id="modalTitle" class="text-xl font-bold text-white mb-4">Add New Course</h2><form id="courseForm"><input type="hidden" id="courseId"><div class="mb-4"><label for="courseCode" class="block text-sm font-medium text-[#D4D4D4]">Course Code</label><input type="text" id="courseCode" class="mt-1 block w-full rounded-md border-[#555555] bg-[#333333] text-white shadow-sm focus:border-[#FDB719] focus:ring-[#FDB719] px-3 py-2" required placeholder="e.g., LAW 6010"></div><div class="mb-4"><label for="courseName" class="block text-sm font-medium text-[#D4D4D4]">Course Name</label><input type="text" id="courseName" class="mt-1 block w-full rounded-md border-[#555555] bg-[#333333] text-white shadow-sm focus:border-[#FDB719] focus:ring-[#FDB719] px-3 py-2" required placeholder="e.g., Torts"></div><div class="mb-4"><label for="credits" class="block text-sm font-medium text-[#D4D4D4]">Credits</label><input type="number" id="credits" min="0" step="0.5" class="mt-1 block w-full rounded-md border-[#555555] bg-[#333333] text-white shadow-sm focus:border-[#FDB719] focus:ring-[#FDB719] px-3 py-2" required placeholder="e.g., 3"></div><div class="mb-4"><label for="semester" class="block text-sm font-medium text-[#D4D4D4]">Semester</label><input type="text" id="semester" class="mt-1 block w-full rounded-md border-[#555555] bg-[#333333] text-white shadow-sm focus:border-[#FDB719] focus:ring-[#FDB719] px-3 py-2" required placeholder="e.g., Fall 2025"></div><div class="mb-4"><label for="courseStatus" class="block text-sm font-medium text-[#D4D4D4]">Status</label><select id="courseStatus" class="mt-1 block w-full rounded-md border-[#555555] bg-[#333333] text-white shadow-sm focus:border-[#FDB719] focus:ring-[#FDB719] px-3 py-2"><option value="In Progress">In Progress</option><option value="Complete">Complete</option></select></div><div id="inProgressFields"><div class="mb-4"><label class="block text-sm font-medium text-[#D4D4D4]">Days</label><div id="courseDays" class="mt-2 grid grid-cols-3 sm:grid-cols-5 gap-2"></div></div><div class="grid grid-cols-2 gap-4 mb-4"><div class="mb-4"><label for="startTime" class="block text-sm font-medium text-[#D4D4D4]">Start Time</label><input type="time" id="startTime" class="mt-1 block w-full rounded-md border-[#555555] bg-[#333333] text-white shadow-sm focus:border-[#FDB719] focus:ring-[#FDB719] px-3 py-2"></div><div class="mb-4"><label for="endTime" class="block text-sm font-medium text-[#D4D4D4]">End Time</label><input type="time" id="endTime" class="mt-1 block w-full rounded-md border-[#555555] bg-[#333333] text-white shadow-sm focus:border-[#FDB719] focus:ring-[#FDB719] px-3 py-2"></div></div></div><div class="mb-6"><label for="grade" class="block text-sm font-medium text-[#D4D4D4]">Grade</label><input type="text" id="grade" class="mt-1 block w-full rounded-md border-[#555555] bg-[#333333] text-white shadow-sm focus:border-[#FDB719] focus:ring-[#FDB719] px-3 py-2" placeholder="65-100, S, or U"></div><div class="flex justify-end space-x-2"><button type="button" id="cancelBtn" class="bg-[#989898] text-[#000000] font-semibold py-2 px-4 rounded-lg hover:bg-[#D4D4D4]">Cancel</button><button type="submit" class="bg-[#FDB719] text-[#000000] font-semibold py-2 px-4 rounded-lg hover:bg-[#FFD17D]">Save Course</button></div></form></div></div>
     
     <!-- Checklist Modal -->
-    <div id="checklistModal" class="modal-backdrop hidden"><div class="modal-content p-8"><h2 class="text-xl font-bold text-white mb-4">Add Courses to Plan</h2><div id="checklist-container" class="space-y-3 max-h-96 overflow-y-auto"></div><div class="flex justify-end mt-6"><button type="button" id="closeChecklistBtn" class="bg-cyan-500 text-black font-semibold py-2 px-4 rounded-lg hover:bg-cyan-400">Done</button></div></div></div>
+    <div id="checklistModal" class="modal-backdrop hidden"><div class="modal-content p-8"><h2 class="text-xl font-bold text-white mb-4">Add Courses to Plan</h2><div id="checklist-container" class="space-y-3 max-h-96 overflow-y-auto"></div><div class="flex justify-end mt-6"><button type="button" id="closeChecklistBtn" class="bg-[#FDB719] text-[#000000] font-semibold py-2 px-4 rounded-lg hover:bg-[#FFD17D]">Done</button></div></div></div>
 
     <!-- New Plan Modal -->
     <div id="planModal" class="modal-backdrop hidden">
@@ -281,12 +246,12 @@
             <h2 class="text-xl font-bold text-white mb-4">Create New Plan</h2>
             <form id="planForm">
                 <div class="mb-4">
-                    <label for="planName" class="block text-sm font-medium text-gray-300]">Plan Name</label>
-                    <input type="text" id="planName" class="mt-1 block w-full rounded-md border-gray-600 bg-gray-800 text-white shadow-sm focus:border-cyan-500 focus:ring-cyan-500 px-3 py-2" required placeholder="e.g., Plan A">
+                    <label for="planName" class="block text-sm font-medium text-[#D4D4D4]">Plan Name</label>
+                    <input type="text" id="planName" class="mt-1 block w-full rounded-md border-[#555555] bg-[#333333] text-white shadow-sm focus:border-[#FDB719] focus:ring-[#FDB719] px-3 py-2" required placeholder="e.g., Plan A">
                 </div>
                 <div class="flex justify-end space-x-2">
-                    <button type="button" id="cancelPlanBtn" class="bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg hover:bg-gray-400">Cancel</button>
-                    <button type="button" id="savePlanBtn" class="bg-cyan-500 text-black font-semibold py-2 px-4 rounded-lg hover:bg-cyan-400">Save Plan</button>
+                    <button type="button" id="cancelPlanBtn" class="bg-[#989898] text-[#000000] font-semibold py-2 px-4 rounded-lg hover:bg-[#D4D4D4]">Cancel</button>
+                    <button type="submit" class="bg-[#FDB719] text-[#000000] font-semibold py-2 px-4 rounded-lg hover:bg-[#FFD17D]">Save Plan</button>
                 </div>
             </form>
         </div>
@@ -294,24 +259,24 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, linkWithCredential } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, collection, onSnapshot, addDoc, updateDoc, deleteDoc, setLogLevel, query, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, collection, onSnapshot, addDoc, updateDoc, deleteDoc, setLogLevel, query, where, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- CONFIG & CONSTANTS ---
         const firebaseConfig = {
             apiKey: "AIzaSyAl5j28ERUYog1FgVcTqs2SEWMG-rt8fI4",
             authDomain: "law-school-scheduler.firebaseapp.com",
             projectId: "law-school-scheduler",
-            storageBucket: "law-school-scheduler.appspot.com",
+            storageBucket: "law-school-scheduler.firebasestorage.app",
             messagingSenderId: "292569639844",
             appId: "1:292569639844:web:162d8b1dd0e943140caf31"
         };
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'course-planner-default';
         const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-        const COLORS = ['bg-cyan-500', 'bg-blue-500', 'bg-indigo-500', 'bg-purple-500', 'bg-pink-500', 'bg-teal-500'];
+        const COLORS = ['bg-[#FDB719]', 'bg-[#FFD17D]', 'bg-[#989898]', 'bg-[#FFDFA5]', 'bg-[#D4D4D4]', 'bg-[#FFEDCF]'];
         const tailwindToHex = {
-            'bg-cyan-500': '#06b6d4', 'bg-blue-500': '#3b82f6', 'bg-indigo-500': '#6366f1',
-            'bg-purple-500': '#8b5cf6', 'bg-pink-500': '#ec4899', 'bg-teal-500': '#14b8a6'
+            'bg-[#FDB719]': '#FDB719', 'bg-[#FFD17D]': '#FFD17D', 'bg-[#989898]': '#989898',
+            'bg-[#FFDFA5]': '#FFDFA5', 'bg-[#D4D4D4]': '#D4D4D4', 'bg-[#FFEDCF]': '#FFEDCF'
         };
         const benchmarks = {
             "1L": { "Top 10%": 91, "Top 25%": 88, "Top 33%": 87, "Median": 84 },
@@ -330,31 +295,22 @@
         const loadingSchedulerDiv = document.getElementById('loadingScheduler');
         const yearSelector = document.getElementById('yearSelector');
         const benchmarkDisplay = document.getElementById('benchmarkDisplay');
-        const schedulerSemesterTabsContainer = document.getElementById('scheduler-semester-tabs');
-        const todoSemesterTabsContainer = document.getElementById('todo-semester-tabs');
+        const semesterTabsContainer = document.getElementById('semester-tabs');
         const planControls = document.getElementById('plan-controls');
-        const noInProgressSemestersScheduler = document.getElementById('no-in-progress-semesters-scheduler');
-        const noInProgressSemestersTodo = document.getElementById('no-in-progress-semesters-todo');
+        const noInProgressSemestersMsg = document.getElementById('no-in-progress-semesters');
         const semesterFilter = document.getElementById('semesterFilter');
         const planCreditsEl = document.getElementById('planCredits');
         const checklistContainer = document.getElementById('checklist-container');
         const tabCourses = document.getElementById('tab-courses');
         const tabScheduler = document.getElementById('tab-scheduler');
-        const tabTodo = document.getElementById('tab-todo');
-        const signInBtn = document.getElementById('signInBtn');
-        const signOutBtn = document.getElementById('signOutBtn');
-        const userInfoDiv = document.getElementById('user-info');
-        const userNameEl = document.getElementById('userName');
-        const todoBoardContainer = document.getElementById('todo-board-container');
 
         // --- FIREBASE & STATE ---
         let app, auth, db, userId;
-        let coursesCollectionRef, plansCollectionRef, todosCollectionRef;
-        let unsubscribeCourses, unsubscribePlans, unsubscribeScheduledCourses, unsubscribeTodos;
+        let coursesCollectionRef, plansCollectionRef;
+        let unsubscribeCourses, unsubscribePlans, unsubscribeScheduledCourses;
         
         let allCourses = [];
         let allPlans = [];
-        let allTodos = [];
         let scheduledCourses = [];
         let courseColorMap = {};
         let activeSemester = null;
@@ -366,34 +322,40 @@
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
-                setLogLevel('debug');
+                setLogLevel('off');
 
-                onAuthStateChanged(auth, async (user) => {
+                onAuthStateChanged(auth, (user) => {
                     if (user) {
                         userId = user.uid;
+                        document.getElementById('status').textContent = 'Connected';
+                        document.getElementById('status').classList.add('text-green-400');
+                        document.getElementById('userIdDisplay').textContent = userId;
+                        
                         coursesCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/courses`);
                         plansCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/schedulePlans`);
-                        todosCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/todos`);
                         
-                        if (user.isAnonymous) {
-                            userInfoDiv.classList.add('hidden');
-                            signInBtn.classList.remove('hidden');
-                        } else {
-                            userNameEl.textContent = user.displayName;
-                            userInfoDiv.classList.remove('hidden');
-                            signInBtn.classList.add('hidden');
-                        }
-
                         listenForCourseUpdates();
                         listenForPlanUpdates();
-                        listenForTodoUpdates();
                     } else {
-                        // User is signed out, create a new anonymous session
-                        await signInAnonymously(auth);
+                        // Handle sign-out
+                        userId = null;
+                        document.getElementById('status').textContent = 'Disconnected';
+                        document.getElementById('status').classList.remove('text-green-400');
+                        document.getElementById('userIdDisplay').textContent = 'N/A';
+                        if (unsubscribeCourses) unsubscribeCourses();
+                        if (unsubscribePlans) unsubscribePlans();
+                        if (unsubscribeScheduledCourses) unsubscribeScheduledCourses();
                     }
                 });
+                
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
             } catch (error) {
                 console.error("Firebase Initialization Error:", error);
+                document.getElementById('status').textContent = 'Error';
             }
         }
 
@@ -408,7 +370,6 @@
                 updateSemesterFilter();
                 updateCourseColorMap();
                 renderSemesterTabs();
-                renderTodoBoard();
                 loadingCoursesDiv.style.display = 'none';
             });
         }
@@ -440,14 +401,6 @@
             });
         }
         
-        function listenForTodoUpdates() {
-            if (!todosCollectionRef) return;
-            unsubscribeTodos = onSnapshot(query(todosCollectionRef), (snapshot) => {
-                allTodos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                renderTodoBoard();
-            });
-        }
-        
         // --- RENDER FUNCTIONS ---
         function renderCourses() {
             const selectedSemester = semesterFilter.value;
@@ -461,62 +414,46 @@
             coursesToRender.forEach(c => {
                 const row = document.createElement('tr');
                 row.className = 'border-b border-gray-700/50';
-                row.innerHTML = `<td class="px-6 py-4 font-medium text-white">${c.courseCode||''}</td><td class="px-6 py-4">${c.courseName||''}</td><td class="px-6 py-4 text-center">${c.credits||0}</td><td class="px-6 py-4"><span class="font-semibold ${c.grade ? 'text-white' : 'text-yellow-400'}">${c.grade||'-'}</span></td><td class="px-6 py-4">${c.status||'In Progress'}</td><td class="px-6 py-4">${c.semester||''}</td><td class="px-6 py-4 text-right"><button data-id="${c.id}" class="edit-btn font-medium text-cyan-400 hover:underline mr-3">Edit</button><button data-id="${c.id}" class="delete-btn font-medium text-red-500 hover:underline">Delete</button></td>`;
+                row.innerHTML = `<td class="px-6 py-4 font-medium text-white">${c.courseCode||''}</td><td class="px-6 py-4">${c.courseName||''}</td><td class="px-6 py-4 text-center">${c.credits||0}</td><td class="px-6 py-4"><span class="font-semibold ${c.grade ? 'text-white' : 'text-yellow-400'}">${c.grade||'-'}</span></td><td class="px-6 py-4">${c.status||'In Progress'}</td><td class="px-6 py-4">${c.semester||''}</td><td class="px-6 py-4 text-right"><button data-id="${c.id}" class="edit-btn font-medium text-[#FDB719] hover:underline mr-3">Edit</button><button data-id="${c.id}" class="delete-btn font-medium text-red-500 hover:underline">Delete</button></td>`;
                 courseListEl.appendChild(row);
             });
         }
 
         function renderSemesterTabs() {
             const inProgressSemesters = [...new Set(allCourses.filter(c => c.status === 'In Progress').map(c => c.semester))].sort();
-            
-            // For Scheduler
-            schedulerSemesterTabsContainer.innerHTML = '';
+            semesterTabsContainer.innerHTML = '';
+
             if (inProgressSemesters.length === 0) {
                 planControls.classList.add('hidden');
-                noInProgressSemestersScheduler.classList.remove('hidden');
-            } else {
-                planControls.classList.remove('hidden');
-                noInProgressSemestersScheduler.classList.add('hidden');
+                noInProgressSemestersMsg.classList.remove('hidden');
+                activeSemester = null;
+                currentPlanId = null;
+                renderSchedule();
+                return;
             }
             
-            // For To-Do Board
-            todoSemesterTabsContainer.innerHTML = '';
-             if (inProgressSemesters.length === 0) {
-                todoBoardContainer.classList.add('hidden');
-                noInProgressSemestersTodo.classList.remove('hidden');
-            } else {
-                todoBoardContainer.classList.remove('hidden');
-                noInProgressSemestersTodo.classList.add('hidden');
-            }
+            planControls.classList.remove('hidden');
+            noInProgressSemestersMsg.classList.add('hidden');
 
             if (!activeSemester || !inProgressSemesters.includes(activeSemester)) {
-                activeSemester = inProgressSemesters.length > 0 ? inProgressSemesters[0] : null;
+                activeSemester = inProgressSemesters[0];
             }
 
             inProgressSemesters.forEach(semester => {
-                // Scheduler Tab
-                const schedulerTab = document.createElement('button');
-                schedulerTab.className = 'semester-tab whitespace-nowrap py-3 px-4 border-b-2 font-medium text-sm border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-500';
-                schedulerTab.textContent = semester;
-                schedulerTab.dataset.semester = semester;
-                if (semester === activeSemester) schedulerTab.classList.add('active');
-                schedulerTab.addEventListener('click', () => {
+                const tab = document.createElement('button');
+                tab.className = 'semester-tab whitespace-nowrap py-3 px-4 border-b-2 font-medium text-sm border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-500';
+                tab.textContent = semester;
+                tab.dataset.semester = semester;
+                if (semester === activeSemester) {
+                    tab.classList.add('active');
+                }
+                tab.addEventListener('click', () => {
                     activeSemester = semester;
                     renderSemesterTabs();
                 });
-                schedulerSemesterTabsContainer.appendChild(schedulerTab);
-
-                // To-Do Tab
-                const todoTab = schedulerTab.cloneNode(true);
-                todoTab.addEventListener('click', () => {
-                    activeSemester = semester;
-                    renderSemesterTabs();
-                });
-                if (semester === activeSemester) todoTab.classList.add('active');
-                todoSemesterTabsContainer.appendChild(todoTab);
+                semesterTabsContainer.appendChild(tab);
             });
             renderPlanSelector();
-            renderTodoBoard();
         }
 
         function renderPlanSelector() {
@@ -602,71 +539,6 @@
                     block.innerHTML = `<strong class="block truncate">${courseDetails.courseCode} - ${courseDetails.courseName}</strong><p class="text-xs">${formatTimeAMPM(courseDetails.startTime)} - ${formatTimeAMPM(courseDetails.endTime)}</p>`;
                     block.dataset.id = scheduledCourse.id;
                     scheduleGrid.appendChild(block);
-                });
-            });
-        }
-
-        function renderTodoBoard() {
-            todoBoardContainer.innerHTML = '';
-            if (!activeSemester) return;
-
-            const coursesForSemester = allCourses.filter(c => c.semester === activeSemester && c.status === 'In Progress');
-            
-            coursesForSemester.forEach(course => {
-                const courseTodos = allTodos.filter(t => t.courseId === course.id);
-                
-                const column = document.createElement('div');
-                column.className = 'glass-panel p-4 flex flex-col';
-                
-                let todoItemsHtml = courseTodos.map(todo => `
-                    <div class="flex items-center justify-between py-2">
-                        <label class="flex items-center space-x-3">
-                            <input type="checkbox" data-todo-id="${todo.id}" class="h-5 w-5 rounded border-gray-500 bg-gray-800 text-cyan-500 focus:ring-cyan-500 accent-cyan-500" ${todo.isComplete ? 'checked' : ''}>
-                            <span class="${todo.isComplete ? 'line-through text-gray-500' : 'text-white'}">${todo.text}</span>
-                        </label>
-                        <button data-todo-id="${todo.id}" class="delete-todo-btn text-red-500 hover:text-red-400">&times;</button>
-                    </div>
-                `).join('');
-
-                column.innerHTML = `
-                    <h3 class="font-bold text-lg text-white border-b border-gray-700/50 pb-2 mb-2">${course.courseName}</h3>
-                    <div class="flex-grow space-y-1">${todoItemsHtml}</div>
-                    <div class="mt-2">
-                        <input type="text" data-course-id="${course.id}" class="add-todo-input mt-1 block w-full rounded-md border-gray-600 bg-gray-800 text-white shadow-sm focus:border-cyan-500 focus:ring-cyan-500 px-3 py-2" placeholder="Add a task...">
-                    </div>
-                `;
-                todoBoardContainer.appendChild(column);
-            });
-
-            todoBoardContainer.querySelectorAll('.add-todo-input').forEach(input => {
-                input.addEventListener('keypress', async e => {
-                    if (e.key === 'Enter' && e.target.value.trim() !== '') {
-                        const courseId = e.target.dataset.courseId;
-                        await addDoc(todosCollectionRef, {
-                            text: e.target.value.trim(),
-                            isComplete: false,
-                            courseId: courseId,
-                            semester: activeSemester,
-                            createdAt: serverTimestamp()
-                        });
-                        e.target.value = '';
-                    }
-                });
-            });
-
-            todoBoardContainer.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-                checkbox.addEventListener('change', async e => {
-                    const todoId = e.target.dataset.todoId;
-                    await updateDoc(doc(db, `artifacts/${appId}/users/${userId}/todos`, todoId), {
-                        isComplete: e.target.checked
-                    });
-                });
-            });
-
-            todoBoardContainer.querySelectorAll('.delete-todo-btn').forEach(button => {
-                button.addEventListener('click', async e => {
-                    const todoId = e.currentTarget.dataset.todoId;
-                    await deleteDoc(doc(db, `artifacts/${appId}/users/${userId}/todos`, todoId));
                 });
             });
         }
@@ -820,7 +692,7 @@
             const daysContainer = document.getElementById('courseDays');
             daysContainer.innerHTML = '';
             DAYS.forEach(day => {
-                daysContainer.innerHTML += `<label class="flex items-center space-x-2"><input type="checkbox" name="days" value="${day}" class="rounded bg-gray-800 border-gray-600 text-cyan-500 focus:ring-cyan-500 accent-cyan-500"><span>${day.substring(0,3)}</span></label>`;
+                daysContainer.innerHTML += `<label class="flex items-center space-x-2"><input type="checkbox" name="days" value="${day}" class="rounded bg-gray-800 border-gray-600 text-[#FDB719] focus:ring-[#FDB719] accent-[#FDB719]"><span>${day.substring(0,3)}</span></label>`;
             });
 
             if (course) {
@@ -896,7 +768,7 @@
 
                 div.innerHTML = `
                     <label class="flex items-center space-x-3">
-                        <input type="checkbox" data-course-id="${course.id}" class="h-5 w-5 rounded border-gray-500 bg-gray-800 text-cyan-500 focus:ring-cyan-500 accent-cyan-500" ${isChecked ? 'checked' : ''} ${hasConflict ? 'disabled' : ''}>
+                        <input type="checkbox" data-course-id="${course.id}" class="h-5 w-5 rounded border-gray-500 bg-gray-800 text-[#FDB719] focus:ring-[#FDB719] accent-[#FDB719]" ${isChecked ? 'checked' : ''} ${hasConflict ? 'disabled' : ''}>
                         <div>
                             <p class="font-semibold ${hasConflict ? '' : 'text-white'}">${course.courseCode} - ${course.courseName}</p>
                             <p class="text-sm ${hasConflict ? '' : 'text-gray-300'}">${dayString} | ${timeString}</p>
@@ -928,26 +800,18 @@
         tabCourses.addEventListener('click', () => {
             document.getElementById('view-courses').classList.remove('hidden');
             document.getElementById('view-scheduler').classList.add('hidden');
-            document.getElementById('view-todo').classList.add('hidden');
-            tabCourses.classList.add('border-cyan-500', 'text-cyan-400');
-            tabScheduler.classList.remove('border-cyan-500', 'text-cyan-400');
-            tabTodo.classList.remove('border-cyan-500', 'text-cyan-400');
+            tabCourses.classList.remove('border-transparent', 'text-[#989898]', 'hover:text-[#D4D4D4]', 'hover:border-gray-500');
+            tabCourses.classList.add('border-[#FDB719]', 'text-[#FDB719]');
+            tabScheduler.classList.add('border-transparent', 'text-[#989898]', 'hover:text-[#D4D4D4]', 'hover:border-gray-500');
+            tabScheduler.classList.remove('border-[#FDB719]', 'text-[#FDB719]');
         });
         tabScheduler.addEventListener('click', () => {
             document.getElementById('view-courses').classList.add('hidden');
             document.getElementById('view-scheduler').classList.remove('hidden');
-            document.getElementById('view-todo').classList.add('hidden');
-            tabCourses.classList.remove('border-cyan-500', 'text-cyan-400');
-            tabScheduler.classList.add('border-cyan-500', 'text-cyan-400');
-            tabTodo.classList.remove('border-cyan-500', 'text-cyan-400');
-        });
-        tabTodo.addEventListener('click', () => {
-            document.getElementById('view-courses').classList.add('hidden');
-            document.getElementById('view-scheduler').classList.add('hidden');
-            document.getElementById('view-todo').classList.remove('hidden');
-            tabCourses.classList.remove('border-cyan-500', 'text-cyan-400');
-            tabScheduler.classList.remove('border-cyan-500', 'text-cyan-400');
-            tabTodo.classList.add('border-cyan-500', 'text-cyan-400');
+            tabScheduler.classList.remove('border-transparent', 'text-[#989898]', 'hover:text-[#D4D4D4]', 'hover:border-gray-500');
+            tabScheduler.classList.add('border-[#FDB719]', 'text-[#FDB719]');
+            tabCourses.classList.add('border-transparent', 'text-[#989898]', 'hover:text-[#D4D4D4]', 'hover:border-gray-500');
+            tabCourses.classList.remove('border-[#FDB719]', 'text-[#FDB719]');
         });
 
         document.getElementById('courseStatus').addEventListener('change', (e) => {
@@ -1065,28 +929,6 @@
             listenForScheduledCourseUpdates();
         });
         
-        signInBtn.addEventListener('click', async () => {
-            const provider = new GoogleAuthProvider();
-            try {
-                if (auth.currentUser && auth.currentUser.isAnonymous) {
-                    const credential = GoogleAuthProvider.credentialFromError(await signInWithPopup(auth, provider).catch(e=>e));
-                    await linkWithCredential(auth.currentUser, credential);
-                } else {
-                    await signInWithPopup(auth, provider);
-                }
-            } catch (error) {
-                console.error("Error during sign-in:", error);
-            }
-        });
-
-        signOutBtn.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-            } catch (error) {
-                console.error("Error during sign-out:", error);
-            }
-        });
-
         // --- INITIAL LOAD ---
         initializeFirebase();
         generateScheduleGrid();
