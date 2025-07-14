@@ -170,7 +170,6 @@
                 <div id="auth-container" class="mt-4 md:mt-0 text-right">
                      <div id="user-info" class="hidden items-center">
                         <span id="userName" class="text-white font-semibold mr-4"></span>
-                        <img id="userPhoto" class="w-8 h-8 rounded-full mr-4" alt="User Photo">
                         <button id="signOutBtn" class="bg-red-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-red-500 transition">Sign Out</button>
                      </div>
                      <button id="signInBtn" class="bg-cyan-500 text-black font-semibold py-2 px-4 rounded-lg shadow-md hover:bg-cyan-400 transition">Sign in with Google</button>
@@ -278,7 +277,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut, linkWithCredential } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, collection, onSnapshot, addDoc, updateDoc, deleteDoc, setLogLevel, query, where, getDocs, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- CONFIG & CONSTANTS ---
@@ -326,7 +325,6 @@
         const signOutBtn = document.getElementById('signOutBtn');
         const userInfoDiv = document.getElementById('user-info');
         const userNameEl = document.getElementById('userName');
-        const userPhotoEl = document.getElementById('userPhoto');
 
         // --- FIREBASE & STATE ---
         let app, auth, db, userId;
@@ -359,7 +357,6 @@
                             signInBtn.classList.remove('hidden');
                         } else {
                             userNameEl.textContent = user.displayName;
-                            userPhotoEl.src = user.photoURL;
                             userInfoDiv.classList.remove('hidden');
                             signInBtn.classList.add('hidden');
                         }
@@ -961,7 +958,12 @@
         signInBtn.addEventListener('click', async () => {
             const provider = new GoogleAuthProvider();
             try {
-                await signInWithPopup(auth, provider);
+                if (auth.currentUser && auth.currentUser.isAnonymous) {
+                    const credential = await signInWithPopup(auth, provider);
+                    await linkWithCredential(auth.currentUser, credential.credential);
+                } else {
+                    await signInWithPopup(auth, provider);
+                }
             } catch (error) {
                 console.error("Error during sign-in:", error);
             }
