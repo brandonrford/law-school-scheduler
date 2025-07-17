@@ -81,7 +81,7 @@
         <div class="w-full max-w-md p-8 space-y-6 bg-black bg-opacity-25 backdrop-blur-lg rounded-2xl border border-gray-700 shadow-lg">
             <div class="text-center">
                 <h1 class="text-4xl font-bold">Personal Dashboard</h1>
-                <p class="mt-2 text-blue-400">Your case, organized.</p>
+                <p class="mt-2 text-pink-400">Your case, organized.</p>
             </div>
             <button id="login-button" class="w-full p-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold flex items-center justify-center gap-2 transition-all duration-300">
                 <i data-lucide="log-in" class="w-5 h-5"></i>
@@ -272,13 +272,12 @@
                     </div>
                     <div class="relative grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] min-w-[640px]" style="height: ${(scheduleEndHour - scheduleStartHour) * hourHeight}px;">
                         <!-- Time Labels -->
-                        <div class="pr-2 text-right text-xs text-gray-400">
+                        <div class="relative w-12 h-full">
                             ${Array.from({length: scheduleEndHour - scheduleStartHour + 1}, (_, i) => {
                                 const hour = scheduleStartHour + i;
                                 const displayHour = hour % 12 || 12;
                                 const ampm = hour < 12 || hour === 24 ? 'AM' : 'PM';
-                                const labelHeight = i === (scheduleEndHour - scheduleStartHour) ? 0 : hourHeight;
-                                return `<div class="relative" style="height: ${labelHeight}px;"><span class="absolute -top-2 right-2">${displayHour} ${ampm}</span></div>`;
+                                return `<div class="absolute text-xs text-gray-400 text-right w-full pr-2" style="top: ${i * hourHeight - 8}px;">${displayHour} ${ampm}</div>`;
                             }).join('')}
                         </div>
                         <!-- Day Columns -->
@@ -336,8 +335,8 @@
 
                     if (duration <= 0) return;
                     
-                    // Robust check for course type. Defaults to 'Class' if type is missing.
-                    const isClass = course.type === 'Class' || typeof course.type === 'undefined';
+                    // Robust check for course type. Defaults to 'Class' if type is missing or not 'Misc'.
+                    const isClass = course.type !== 'Misc';
                     const bgColor = isClass ? 'bg-purple-800' : 'bg-blue-800';
                     const borderColor = isClass ? 'border-purple-400' : 'border-blue-400';
 
