@@ -26,7 +26,7 @@
         }
         .day-column {
             background-image: linear-gradient(to bottom, rgba(128, 128, 128, 0.1) 1px, transparent 1px);
-            background-size: 100% 80px; /* 80px represents 1 hour */
+            background-size: 100% 100px; /* 100px represents 1 hour */
         }
         /* Toggle Switch CSS */
         .toggle-switch {
@@ -68,10 +68,6 @@
         input:checked + .slider:before {
             transform: translateX(22px);
         }
-        /* Parallax effect smoothness */
-        #dashboard > header, .widget-container {
-            transition: transform 0.1s ease-out;
-        }
     </style>
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 </head>
@@ -105,13 +101,13 @@
         </header>
         <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Course Schedule -->
-            <div id="course-schedule-widget" class="lg:col-span-3 widget-container"></div>
+            <div id="course-schedule-widget" class="lg:col-span-3"></div>
             <!-- Task Tracker -->
-            <div id="task-tracker-widget" class="md:col-span-2 lg:col-span-1 widget-container"></div>
+            <div id="task-tracker-widget" class="md:col-span-2 lg:col-span-1"></div>
             <!-- Job Application Center -->
-            <div id="job-app-widget" class="md:col-span-2 lg:col-span-2 widget-container"></div>
+            <div id="job-app-widget" class="md:col-span-2 lg:col-span-2"></div>
             <!-- Journal & Goals -->
-            <div id="journal-goals-widget" class="lg:col-span-3 widget-container"></div>
+            <div id="journal-goals-widget" class="lg:col-span-3"></div>
         </main>
     </div>
 
@@ -175,23 +171,6 @@
             }
             lucide.createIcons();
         });
-        
-        // --- PARALLAX SCROLL EFFECT ---
-        window.addEventListener('scroll', () => {
-            const scrollY = window.scrollY;
-            const header = document.querySelector('#dashboard header');
-            const widgets = document.querySelectorAll('.widget-container');
-
-            if (header) {
-                header.style.transform = `translateY(${scrollY * 0.5}px)`;
-            }
-
-            widgets.forEach((widget, index) => {
-                const speed = ((index % 4) + 1) * 0.1; // Speeds: 0.1, 0.2, 0.3, 0.4
-                widget.style.transform = `translateY(${scrollY * speed}px)`;
-            });
-        });
-
 
         // --- WIDGETS ---
         const createWidget = (title, icon, content, startOpen = false) => {
@@ -236,7 +215,7 @@
             const scheduleCollectionRef = collection(db, 'artifacts', appId, 'users', userId, 'schedule');
             const scheduleStartHour = 8; // 8 AM
             const scheduleEndHour = 17; // 5 PM (17:00)
-            const hourHeight = 80; // pixels per hour
+            const hourHeight = 100; // pixels per hour
             
             const dayAbbreviations = { Monday: 'M', Tuesday: 'T', Wednesday: 'W', Thursday: 'Th', Friday: 'F' };
 
@@ -288,10 +267,10 @@
                         <div></div> <!-- Empty corner -->
                         ${days.map(day => `<div class="p-2 border-b-2 border-gray-600">${day}</div>`).join('')}
                     </div>
-                    <div class="relative grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] h-[${(scheduleEndHour - scheduleStartHour) * hourHeight}px] min-w-[640px]">
+                    <div class="relative grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] min-w-[640px]">
                         <!-- Time Labels -->
                         <div class="relative -top-3 pr-2 text-right text-xs text-gray-400">
-                            ${Array.from({length: scheduleEndHour - scheduleStartHour + 1}, (_, i) => `<div style="height: ${hourHeight}px;">${(scheduleStartHour + i) % 12 || 12} ${scheduleStartHour + i < 12 || scheduleStartHour + i === 24 ? 'AM' : 'PM'}</div>`).slice(0, -1).join('')}
+                            ${Array.from({length: scheduleEndHour - scheduleStartHour + 1}, (_, i) => `<div style="height: ${hourHeight}px;">${(scheduleStartHour + i) % 12 || 12} ${scheduleStartHour + i < 12 || scheduleStartHour + i === 24 ? 'AM' : 'PM'}</div>`).join('')}
                         </div>
                         <!-- Day Columns -->
                         ${days.map(day => `<div id="schedule-col-${day}" class="day-column relative border-l border-gray-700"></div>`).join('')}
