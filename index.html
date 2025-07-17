@@ -263,17 +263,23 @@
 
             const scheduleGridContent = `
                 <div class="overflow-x-auto">
-                    <div class="relative grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] text-sm text-center font-bold min-w-[640px]">
-                        <div></div> <!-- Empty corner -->
+                    <div class="grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] text-sm text-center font-bold min-w-[640px]">
+                        <div class="w-12"></div> <!-- Empty corner -->
                         ${days.map(day => `<div class="p-2 border-b-2 border-gray-600">${day}</div>`).join('')}
                     </div>
-                    <div class="relative grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] min-w-[640px]">
+                    <div class="relative grid grid-cols-[auto_1fr_1fr_1fr_1fr_1fr] min-w-[640px]" style="height: ${(scheduleEndHour - scheduleStartHour) * hourHeight}px;">
                         <!-- Time Labels -->
-                        <div class="relative -top-3 pr-2 text-right text-xs text-gray-400">
-                            ${Array.from({length: scheduleEndHour - scheduleStartHour + 1}, (_, i) => `<div style="height: ${hourHeight}px;">${(scheduleStartHour + i) % 12 || 12} ${scheduleStartHour + i < 12 || scheduleStartHour + i === 24 ? 'AM' : 'PM'}</div>`).join('')}
+                        <div class="pr-2 text-right text-xs text-gray-400">
+                            ${Array.from({length: scheduleEndHour - scheduleStartHour + 1}, (_, i) => {
+                                const hour = scheduleStartHour + i;
+                                const displayHour = hour % 12 || 12;
+                                const ampm = hour < 12 || hour === 24 ? 'AM' : 'PM';
+                                const labelHeight = i === (scheduleEndHour - scheduleStartHour) ? 0 : hourHeight;
+                                return `<div class="relative" style="height: ${labelHeight}px;"><span class="absolute -top-2 right-2">${displayHour} ${ampm}</span></div>`;
+                            }).join('')}
                         </div>
                         <!-- Day Columns -->
-                        ${days.map(day => `<div id="schedule-col-${day}" class="day-column relative border-l border-gray-700"></div>`).join('')}
+                        ${days.map(day => `<div id="schedule-col-${day}" class="day-column relative border-l border-gray-700 h-full"></div>`).join('')}
                     </div>
                 </div>
             `;
@@ -326,9 +332,11 @@
                     const duration = endMinutes - startMinutes;
 
                     if (duration <= 0) return;
-
-                    const bgColor = course.type === 'Class' ? 'bg-purple-800' : 'bg-blue-800';
-                    const borderColor = course.type === 'Class' ? 'border-purple-400' : 'border-blue-400';
+                    
+                    // Robust check for course type. Defaults to 'Class' if type is missing.
+                    const isClass = course.type === 'Class' || typeof course.type === 'undefined';
+                    const bgColor = isClass ? 'bg-purple-800' : 'bg-blue-800';
+                    const borderColor = isClass ? 'border-purple-400' : 'border-blue-400';
 
                     const courseBlock = document.createElement('div');
                     courseBlock.className = `absolute w-full p-2 text-left ${bgColor} bg-opacity-70 border-l-4 ${borderColor} rounded-r-lg overflow-hidden flex flex-col`;
@@ -618,4 +626,4 @@
 
     </script>
 </body>
-</html>
+</ht
