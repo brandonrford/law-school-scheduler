@@ -148,6 +148,10 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        
+        // --- GLOBAL CONFIGURATION ---
+        const CLOUDFLARE_WORKER_URL = "https://gemini-worker.brandonford227.workers.dev";
+
 
         // --- UI ELEMENTS ---
         const loginScreen = document.getElementById('login-screen');
@@ -548,8 +552,6 @@
             const container = document.getElementById('journal-goals-widget');
             const goalsCollectionRef = collection(db, 'artifacts', appId, 'users', userId, 'goals');
             const journalCollectionRef = collection(db, 'artifacts', appId, 'users', userId, 'journal_entries');
-            // IMPORTANT: Replace this with your actual Cloudflare Worker URL
-            const CLOUDFLARE_WORKER_URL = "gemini-worker.brandonford227.workers.dev";
 
             const content = `
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -597,10 +599,6 @@
                     alert("Please enter some text for the AI assistant.");
                     return;
                 }
-                if (CLOUDFLARE_WORKER_URL === "YOUR_CLOUDFLARE_WORKER_URL_HERE") {
-                    alert("Please replace the placeholder with your Cloudflare Worker URL in the HTML file.");
-                    return;
-                }
 
                 aiLoader.classList.remove('hidden');
                 aiButtonText.textContent = "Thinking...";
@@ -614,7 +612,7 @@
                             contents: [{ parts: [{ text: prompt }] }]
                         }),
                     });
-
+                    
                     const responseText = await response.text();
 
                     if (!response.ok) {
@@ -637,7 +635,11 @@
 
                 } catch (error) {
                     console.error("AI Assistant Error:", error);
-                    alert(`An error occurred: ${error.message}`);
+                    let errorMessage = "An unknown error occurred. Please check the browser's developer console for more details.";
+                    if (error && error.message) {
+                        errorMessage = error.message;
+                    }
+                    alert(`An error occurred: ${errorMessage}`);
                 } finally {
                     aiLoader.classList.add('hidden');
                     aiButtonText.textContent = "AI Assistant";
