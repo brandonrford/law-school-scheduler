@@ -71,6 +71,18 @@
         input:checked + .slider:before {
             transform: translateX(22px);
         }
+        .loader {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #8b5cf6;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 </head>
@@ -136,6 +148,10 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        
+        // --- GLOBAL CONFIGURATION ---
+        const CLOUDFLARE_WORKER_URL = "https://gemini-worker.brandonford227.workers.dev";
+
 
         // --- UI ELEMENTS ---
         const loginScreen = document.getElementById('login-screen');
@@ -335,7 +351,6 @@
 
                     if (duration <= 0) return;
                     
-                    // Robust check for course type. Defaults to 'Class' if type is missing or not 'Misc'.
                     const isClass = course.type !== 'Misc';
                     const bgColor = isClass ? 'bg-purple-800' : 'bg-blue-800';
                     const borderColor = isClass ? 'border-purple-400' : 'border-blue-400';
@@ -551,10 +566,17 @@
                     </div>
                     <!-- Journal -->
                     <div>
-                        <h3 class="text-lg font-bold mb-3">Case Briefs & Notes</h3>
+                        <h3 class="text-lg font-bold mb-3">Journal & AI Assistant</h3>
                         <form id="add-entry-form">
-                            <textarea name="text" placeholder="What's on your mind? Case notes..." class="w-full p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 h-32 resize-none mb-2" required></textarea>
-                            <button type="submit" class="w-full p-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold">Save Entry</button>
+                            <textarea id="journal-textarea" name="text" placeholder="Write your thoughts down, or get some input from an AI assistant..." class="w-full p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 h-32 resize-none mb-2" required></textarea>
+                            <div class="flex gap-2">
+                                <button type="submit" class="w-full p-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold">Save Entry</button>
+                                <button type="button" id="ai-assistant-button" class="w-full p-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold flex items-center justify-center gap-2">
+                                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                                    <span>AI Assistant</span>
+                                    <div id="ai-loader" class="loader hidden"></div>
+                                </button>
+                            </div>
                         </form>
                         <div id="entry-list" class="mt-4 space-y-3 max-h-60 overflow-y-auto pr-2"></div>
                     </div>
@@ -563,6 +585,67 @@
             const widget = createWidget('Journal & Goals', 'edit-3', content, true);
             container.innerHTML = widget.html;
             document.getElementById(`toggle-${widget.id}`).addEventListener('click', () => widget.toggle(container));
+            lucide.createIcons();
+
+            // AI Assistant Logic
+            const aiButton = document.getElementById('ai-assistant-button');
+            const journalTextarea = document.getElementById('journal-textarea');
+            const aiLoader = document.getElementById('ai-loader');
+            const aiButtonText = aiButton.querySelector('span');
+
+            aiButton.addEventListener('click', async () => {
+                const prompt = journalTextarea.value;
+                if (!prompt.trim()) {
+                    alert("Please enter some text for the AI assistant.");
+                    return;
+                }
+
+                aiLoader.classList.remove('hidden');
+                aiButtonText.textContent = "Thinking...";
+                aiButton.disabled = true;
+
+                try {
+                    const response = await fetch(CLOUDFLARE_WORKER_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: prompt }] }]
+                        }),
+                    });
+                    
+                    const responseText = await response.text();
+
+                    if (!response.ok) {
+                        throw new Error(`AI service error: ${response.status} ${response.statusText}. Details: ${responseText}`);
+                    }
+                    
+                    let result;
+                    try {
+                        result = JSON.parse(responseText);
+                    } catch (e) {
+                        throw new Error(`Failed to parse AI response. Received: ${responseText}`);
+                    }
+
+                    if (result.candidates && result.candidates.length > 0 && result.candidates[0].content && result.candidates[0].content.parts[0]) {
+                        const aiText = result.candidates[0].content.parts[0].text;
+                        journalTextarea.value = aiText;
+                    } else {
+                        throw new Error("No valid response from AI assistant. The content may have been filtered or the response structure was unexpected.");
+                    }
+
+                } catch (error) {
+                    console.error("AI Assistant Error:", error);
+                    let errorMessage = "An unknown error occurred. Please check the browser's developer console for more details.";
+                    if (error && error.message) {
+                        errorMessage = error.message;
+                    }
+                    alert(`An error occurred: ${errorMessage}`);
+                } finally {
+                    aiLoader.classList.add('hidden');
+                    aiButtonText.textContent = "AI Assistant";
+                    aiButton.disabled = false;
+                }
+            });
 
             // Goals Logic
             document.getElementById('add-goal-form').addEventListener('submit', async (e) => {
@@ -598,6 +681,9 @@
             document.getElementById('add-entry-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const form = e.target;
+                // Check which button was clicked if you have multiple submit buttons
+                if (document.activeElement.id === 'ai-assistant-button') return;
+
                 await addDoc(journalCollectionRef, {
                     text: form.text.value,
                     date: new Date().toISOString().split('T')[0]
