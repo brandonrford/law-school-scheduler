@@ -68,6 +68,10 @@
         input:checked + .slider:before {
             transform: translateX(22px);
         }
+        /* Parallax effect smoothness */
+        .parallax-target {
+            transition: transform 0.1s ease-out;
+        }
     </style>
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 </head>
@@ -89,7 +93,7 @@
 
     <!-- Dashboard -->
     <div id="dashboard" class="hidden min-h-screen w-full p-4 sm:p-6 lg:p-8">
-        <header class="mb-8 flex flex-wrap justify-between items-center gap-4">
+        <header class="mb-8 flex flex-wrap justify-between items-center gap-4 parallax-target">
             <div>
                 <h1 class="text-3xl sm:text-4xl font-bold">Your Personal Dashboard</h1>
                 <p id="welcome-message" class="text-sm text-gray-400"></p>
@@ -171,6 +175,19 @@
             }
             lucide.createIcons();
         });
+        
+        // --- PARALLAX SCROLL EFFECT ---
+        window.addEventListener('scroll', () => {
+            const scrollY = window.scrollY;
+            const parallaxTargets = document.querySelectorAll('.parallax-target');
+
+            parallaxTargets.forEach((target, index) => {
+                // Assign different speeds to different elements for a varied effect
+                const speed = (index === 0) ? 0.5 : ((index % 4) + 1) * 0.1; // Header moves faster
+                target.style.transform = `translateY(${scrollY * speed}px)`;
+            });
+        });
+
 
         // --- WIDGETS ---
         const createWidget = (title, icon, content, startOpen = false) => {
@@ -178,15 +195,17 @@
             let isOpen = startOpen;
             const html = `
                 <div class="bg-black bg-opacity-25 backdrop-blur-lg rounded-2xl border border-gray-700 shadow-lg p-6">
-                    <button id="toggle-${widgetId}" class="w-full flex justify-between items-center text-left">
-                        <div class="flex items-center gap-3">
-                            <i data-lucide="${icon}" class="text-purple-400"></i>
-                            <h2 class="text-xl font-bold">${title}</h2>
+                    <div class="parallax-target">
+                        <button id="toggle-${widgetId}" class="w-full flex justify-between items-center text-left">
+                            <div class="flex items-center gap-3">
+                                <i data-lucide="${icon}" class="text-purple-400"></i>
+                                <h2 class="text-xl font-bold">${title}</h2>
+                            </div>
+                            <i data-lucide="${isOpen ? 'chevron-up' : 'chevron-down'}"></i>
+                        </button>
+                        <div id="content-${widgetId}" class="mt-4 pt-4 border-t border-gray-700 ${isOpen ? '' : 'hidden'}">
+                            ${content}
                         </div>
-                        <i data-lucide="${isOpen ? 'chevron-up' : 'chevron-down'}"></i>
-                    </button>
-                    <div id="content-${widgetId}" class="mt-4 pt-4 border-t border-gray-700 ${isOpen ? '' : 'hidden'}">
-                        ${content}
                     </div>
                 </div>
             `;
@@ -626,4 +645,4 @@
 
     </script>
 </body>
-</ht
+</html>
