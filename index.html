@@ -9,6 +9,9 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            background-image: url(https://www.transparenttextures.com/patterns/stardust.png);
+            background-attachment: fixed; /* This creates the simple parallax effect */
+            background-position: center;
         }
         /* For Webkit browsers like Chrome, Safari */
         ::-webkit-scrollbar {
@@ -68,14 +71,10 @@
         input:checked + .slider:before {
             transform: translateX(22px);
         }
-        /* Parallax effect smoothness */
-        .parallax-target {
-            transition: transform 0.1s ease-out;
-        }
     </style>
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 </head>
-<body class="bg-gray-900 text-gray-100" style="background-image: url(https://www.transparenttextures.com/patterns/stardust.png)">
+<body class="bg-gray-900 text-gray-100">
 
     <!-- Login Screen -->
     <div id="login-screen" class="min-h-screen w-full flex items-center justify-center p-4">
@@ -93,7 +92,7 @@
 
     <!-- Dashboard -->
     <div id="dashboard" class="hidden min-h-screen w-full p-4 sm:p-6 lg:p-8">
-        <header class="mb-8 flex flex-wrap justify-between items-center gap-4 parallax-target">
+        <header class="mb-8 flex flex-wrap justify-between items-center gap-4">
             <div>
                 <h1 class="text-3xl sm:text-4xl font-bold">Your Personal Dashboard</h1>
                 <p id="welcome-message" class="text-sm text-gray-400"></p>
@@ -175,19 +174,6 @@
             }
             lucide.createIcons();
         });
-        
-        // --- PARALLAX SCROLL EFFECT ---
-        window.addEventListener('scroll', () => {
-            const scrollY = window.scrollY;
-            const parallaxTargets = document.querySelectorAll('.parallax-target');
-
-            parallaxTargets.forEach((target, index) => {
-                // Assign different speeds to different elements for a varied effect
-                const speed = (index === 0) ? 0.5 : ((index % 4) + 1) * 0.1; // Header moves faster
-                target.style.transform = `translateY(${scrollY * speed}px)`;
-            });
-        });
-
 
         // --- WIDGETS ---
         const createWidget = (title, icon, content, startOpen = false) => {
@@ -195,17 +181,15 @@
             let isOpen = startOpen;
             const html = `
                 <div class="bg-black bg-opacity-25 backdrop-blur-lg rounded-2xl border border-gray-700 shadow-lg p-6">
-                    <div class="parallax-target">
-                        <button id="toggle-${widgetId}" class="w-full flex justify-between items-center text-left">
-                            <div class="flex items-center gap-3">
-                                <i data-lucide="${icon}" class="text-purple-400"></i>
-                                <h2 class="text-xl font-bold">${title}</h2>
-                            </div>
-                            <i data-lucide="${isOpen ? 'chevron-up' : 'chevron-down'}"></i>
-                        </button>
-                        <div id="content-${widgetId}" class="mt-4 pt-4 border-t border-gray-700 ${isOpen ? '' : 'hidden'}">
-                            ${content}
+                    <button id="toggle-${widgetId}" class="w-full flex justify-between items-center text-left">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="${icon}" class="text-purple-400"></i>
+                            <h2 class="text-xl font-bold">${title}</h2>
                         </div>
+                        <i data-lucide="${isOpen ? 'chevron-up' : 'chevron-down'}"></i>
+                    </button>
+                    <div id="content-${widgetId}" class="mt-4 pt-4 border-t border-gray-700 ${isOpen ? '' : 'hidden'}">
+                        ${content}
                     </div>
                 </div>
             `;
