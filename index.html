@@ -47,7 +47,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background-color: #3b82f6; /* blue-500 for Task */
+            background-color: #3b82f6; /* blue-500 for Misc */
             transition: .4s;
             border-radius: 28px;
         }
@@ -63,10 +63,14 @@
             border-radius: 50%;
         }
         input:checked + .slider {
-            background-color: #8b5cf6; /* purple-500 for Course */
+            background-color: #8b5cf6; /* purple-500 for Class */
         }
         input:checked + .slider:before {
             transform: translateX(22px);
+        }
+        /* Parallax effect smoothness */
+        #dashboard > header, .widget-container {
+            transition: transform 0.1s ease-out;
         }
     </style>
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
@@ -78,7 +82,7 @@
         <div class="w-full max-w-md p-8 space-y-6 bg-black bg-opacity-25 backdrop-blur-lg rounded-2xl border border-gray-700 shadow-lg">
             <div class="text-center">
                 <h1 class="text-4xl font-bold">Personal Dashboard</h1>
-                <p class="mt-2 text-blue-400">Your universe, organized.</p>
+                <p class="mt-2 text-blue-400">Your case, organized.</p>
             </div>
             <button id="login-button" class="w-full p-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold flex items-center justify-center gap-2 transition-all duration-300">
                 <i data-lucide="log-in" class="w-5 h-5"></i>
@@ -101,13 +105,13 @@
         </header>
         <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Course Schedule -->
-            <div id="course-schedule-widget" class="lg:col-span-3"></div>
+            <div id="course-schedule-widget" class="lg:col-span-3 widget-container"></div>
             <!-- Task Tracker -->
-            <div id="task-tracker-widget" class="md:col-span-2 lg:col-span-1"></div>
+            <div id="task-tracker-widget" class="md:col-span-2 lg:col-span-1 widget-container"></div>
             <!-- Job Application Center -->
-            <div id="job-app-widget" class="md:col-span-2 lg:col-span-2"></div>
+            <div id="job-app-widget" class="md:col-span-2 lg:col-span-2 widget-container"></div>
             <!-- Journal & Goals -->
-            <div id="journal-goals-widget" class="lg:col-span-3"></div>
+            <div id="journal-goals-widget" class="lg:col-span-3 widget-container"></div>
         </main>
     </div>
 
@@ -171,6 +175,23 @@
             }
             lucide.createIcons();
         });
+        
+        // --- PARALLAX SCROLL EFFECT ---
+        window.addEventListener('scroll', () => {
+            const scrollY = window.scrollY;
+            const header = document.querySelector('#dashboard header');
+            const widgets = document.querySelectorAll('.widget-container');
+
+            if (header) {
+                header.style.transform = `translateY(${scrollY * 0.5}px)`;
+            }
+
+            widgets.forEach((widget, index) => {
+                const speed = ((index % 4) + 1) * 0.1; // Speeds: 0.1, 0.2, 0.3, 0.4
+                widget.style.transform = `translateY(${scrollY * speed}px)`;
+            });
+        });
+
 
         // --- WIDGETS ---
         const createWidget = (title, icon, content, startOpen = false) => {
@@ -222,12 +243,12 @@
             const formContent = `
                 <form id="add-course-form" class="flex flex-wrap gap-4 mb-6 items-end">
                     <div class="flex-grow min-w-[200px]">
-                        <label for="courseName" class="text-xs font-semibold text-gray-400">Event Name</label>
-                        <input type="text" id="courseName" name="name" placeholder="e.g. Quantum Physics" class="w-full mt-1 p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" required />
+                        <label for="courseName" class="text-xs font-semibold text-gray-400">Class / Event Name</label>
+                        <input type="text" id="courseName" name="name" placeholder="e.g. Torts" class="w-full mt-1 p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" required />
                     </div>
                     <div class="flex-grow min-w-[150px]">
-                        <label for="courseRoom" class="text-xs font-semibold text-gray-400">Location / Room</label>
-                        <input type="text" id="courseRoom" name="room" placeholder="e.g. Hall C" class="w-full mt-1 p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" />
+                        <label for="courseRoom" class="text-xs font-semibold text-gray-400">Location / Room #</label>
+                        <input type="text" id="courseRoom" name="room" placeholder="e.g. Hulston 103" class="w-full mt-1 p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" />
                     </div>
                     <div class="flex-grow min-w-[200px]">
                         <label class="text-xs font-semibold text-gray-400">Start & End Time</label>
@@ -247,16 +268,16 @@
                             `).join('')}
                         </div>
                         <div class="flex items-center gap-3">
-                            <span class="font-semibold text-sm text-blue-400">Task</span>
+                            <span class="font-semibold text-sm text-blue-400">Misc</span>
                             <label class="toggle-switch">
                                 <input type="checkbox" name="typeToggle" checked>
                                 <span class="slider"></span>
                             </label>
-                            <span class="font-semibold text-sm text-purple-400">Course</span>
+                            <span class="font-semibold text-sm text-purple-400">Class</span>
                         </div>
                     </div>
                     <div class="w-full">
-                         <button type="submit" class="mt-2 h-12 w-full p-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold flex items-center justify-center gap-2">Add to Schedule</button>
+                         <button type="submit" class="mt-2 h-12 w-full p-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold flex items-center justify-center gap-2">Add to Calendar</button>
                     </div>
                 </form>
             `;
@@ -278,7 +299,7 @@
                 </div>
             `;
 
-            const widget = createWidget('Course Schedule', 'book-open', formContent + scheduleGridContent, true);
+            const widget = createWidget('Class Schedule', 'book-open', formContent + scheduleGridContent, true);
             container.innerHTML = widget.html;
             document.getElementById(`toggle-${widget.id}`).addEventListener('click', () => widget.toggle(container));
 
@@ -291,7 +312,7 @@
                     return;
                 }
                 const courseGroupId = `course_${Date.now()}`;
-                const type = form.typeToggle.checked ? 'Course' : 'Task';
+                const type = form.typeToggle.checked ? 'Class' : 'Misc';
                 const batch = writeBatch(db);
                 selectedDays.forEach(day => {
                     const newCourseRef = doc(collection(db, 'artifacts', appId, 'users', userId, 'schedule'));
@@ -327,8 +348,8 @@
 
                     if (duration <= 0) return;
 
-                    const bgColor = course.type === 'Course' ? 'bg-purple-800' : 'bg-blue-800';
-                    const borderColor = course.type === 'Course' ? 'border-purple-400' : 'border-blue-400';
+                    const bgColor = course.type === 'Class' ? 'bg-purple-800' : 'bg-blue-800';
+                    const borderColor = course.type === 'Class' ? 'border-purple-400' : 'border-blue-400';
 
                     const courseBlock = document.createElement('div');
                     courseBlock.className = `absolute w-full p-2 text-left ${bgColor} bg-opacity-70 border-l-4 ${borderColor} rounded-r-lg overflow-hidden flex flex-col`;
@@ -380,12 +401,12 @@
 
             const content = `
                 <form id="add-task-form" class="flex gap-2 mb-4">
-                    <input type="text" name="text" placeholder="New task..." class="w-full p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" required />
+                    <input type="text" name="text" placeholder="New reading or outline..." class="w-full p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" required />
                     <button type="submit" class="w-auto px-4 p-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold flex items-center justify-center gap-2"><i data-lucide="plus" class="w-5 h-5"></i></button>
                 </form>
                 <div id="task-lists"></div>
             `;
-            const widget = createWidget('Task Tracker', 'check', content, true);
+            const widget = createWidget('Case Readings & Tasks', 'check', content, true);
             container.innerHTML = widget.html;
             document.getElementById(`toggle-${widget.id}`).addEventListener('click', () => widget.toggle(container));
 
@@ -469,8 +490,8 @@
 
             const content = `
                 <form id="add-app-form" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                    <input type="text" name="company" placeholder="Company" class="w-full p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" required />
-                    <input type="text" name="position" placeholder="Position" class="w-full p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" required />
+                    <input type="text" name="company" placeholder="Firm / Organization" class="w-full p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" required />
+                    <input type="text" name="position" placeholder="e.g. Summer Associate" class="w-full p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" required />
                     <button type="submit" class="sm:col-span-2 w-full p-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold flex items-center justify-center gap-2">Add Application</button>
                 </form>
                 <div id="app-list" class="space-y-3 max-h-96 overflow-y-auto pr-2"></div>
@@ -532,18 +553,18 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <!-- Goals -->
                     <div>
-                        <h3 class="text-lg font-bold mb-3 flex items-center gap-2"><i data-lucide="target" class="text-blue-400"></i> Long-Term Goals</h3>
+                        <h3 class="text-lg font-bold mb-3 flex items-center gap-2"><i data-lucide="target" class="text-blue-400"></i> Career & Academic Goals</h3>
                         <form id="add-goal-form" class="flex gap-2 mb-4">
-                            <input type="text" name="text" placeholder="New goal..." class="w-full p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" required />
+                            <input type="text" name="text" placeholder="e.g. Make Law Review" class="w-full p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" required />
                             <button type="submit" class="w-auto px-4 p-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold flex items-center justify-center gap-2"><i data-lucide="plus"></i></button>
                         </form>
                         <ul id="goal-list" class="space-y-2 max-h-60 overflow-y-auto pr-2"></ul>
                     </div>
                     <!-- Journal -->
                     <div>
-                        <h3 class="text-lg font-bold mb-3">Daily Entry</h3>
+                        <h3 class="text-lg font-bold mb-3">Case Briefs & Notes</h3>
                         <form id="add-entry-form">
-                            <textarea name="text" placeholder="What's on your mind?" class="w-full p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 h-32 resize-none mb-2" required></textarea>
+                            <textarea name="text" placeholder="What's on your mind? Case notes..." class="w-full p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 h-32 resize-none mb-2" required></textarea>
                             <button type="submit" class="w-full p-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold">Save Entry</button>
                         </form>
                         <div id="entry-list" class="mt-4 space-y-3 max-h-60 overflow-y-auto pr-2"></div>
