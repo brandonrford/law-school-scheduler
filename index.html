@@ -4,8 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Personal Dashboard</title>
+    <!-- 
+      PRODUCTION NOTE: The Tailwind CSS CDN script below is great for development but not recommended 
+      for production due to performance. For a live website, you should install Tailwind CSS
+      and generate a static CSS file.
+      See how: https://tailwindcss.com/docs/installation
+    -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.1.0/showdown.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -72,8 +79,8 @@
             transform: translateX(22px);
         }
         .loader {
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #8b5cf6;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #8b5cf6;
             border-radius: 50%;
             width: 16px;
             height: 16px;
@@ -83,6 +90,22 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        /* Styles for rendered Markdown content */
+        .prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 { font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; line-height: 1.2; }
+        .prose h1 { font-size: 1.5em; }
+        .prose h2 { font-size: 1.25em; }
+        .prose h3 { font-size: 1.1em; }
+        .prose p { margin-bottom: 1em; }
+        .prose ul { list-style-type: disc; margin-left: 1.5em; margin-bottom: 1em; }
+        .prose ol { list-style-type: decimal; margin-left: 1.5em; margin-bottom: 1em; }
+        .prose li { margin-bottom: 0.25em; }
+        .prose a { color: #818cf8; text-decoration: underline; }
+        .prose code { background-color: #1f2937; padding: 0.2em 0.4em; border-radius: 4px; font-family: monospace; }
+        .prose pre { background-color: #1f2937; padding: 1em; border-radius: 8px; overflow-x: auto; }
+        .prose blockquote { border-left: 4px solid #4a5568; padding-left: 1em; margin-left: 0; color: #a0aec0; }
+        .prose table { width: 100%; border-collapse: collapse; margin-bottom: 1em; }
+        .prose th, .prose td { border: 1px solid #4a5568; padding: 0.5em 1em; }
+        .prose th { font-weight: bold; background-color: #2d3748; }
     </style>
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 </head>
@@ -114,13 +137,13 @@
                 <span>Logout</span>
             </button>
         </header>
-        <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Course Schedule -->
             <div id="course-schedule-widget" class="lg:col-span-3"></div>
             <!-- Task Tracker -->
-            <div id="task-tracker-widget" class="md:col-span-2 lg:col-span-1"></div>
+            <div id="task-tracker-widget" class="lg:col-span-1"></div>
             <!-- Job Application Center -->
-            <div id="job-app-widget" class="md:col-span-2 lg:col-span-2"></div>
+            <div id="job-app-widget" class="lg:col-span-2"></div>
             <!-- Journal & Goals -->
             <div id="journal-goals-widget" class="lg:col-span-3"></div>
         </main>
@@ -135,14 +158,8 @@
         lucide.createIcons();
 
         // --- FIREBASE CONFIGURATION ---
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "YOUR_API_KEY", // This will be replaced by the middleware function on Cloudflare
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
-        };
+        // This configuration is injected by the environment.
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'personal-dashboard-static';
 
         const app = initializeApp(firebaseConfig);
@@ -151,7 +168,6 @@
         
         // --- GLOBAL CONFIGURATION ---
         const CLOUDFLARE_WORKER_URL = "https://gemini-worker.brandonford227.workers.dev";
-
 
         // --- UI ELEMENTS ---
         const loginScreen = document.getElementById('login-screen');
@@ -202,7 +218,7 @@
                             <i data-lucide="${icon}" class="text-purple-400"></i>
                             <h2 class="text-xl font-bold">${title}</h2>
                         </div>
-                        <i data-lucide="${isOpen ? 'chevron-up' : 'chevron-down'}"></i>
+                        <i data-lucide="${isOpen ? 'chevron-up' : 'chevron-down'}" class="toggle-chevron"></i>
                     </button>
                     <div id="content-${widgetId}" class="mt-4 pt-4 border-t border-gray-700 ${isOpen ? '' : 'hidden'}">
                         ${content}
@@ -213,7 +229,10 @@
             const toggle = (el) => {
                 isOpen = !isOpen;
                 document.getElementById(`content-${widgetId}`).classList.toggle('hidden');
-                document.getElementById(`toggle-${widgetId}`).querySelector('[data-lucide]').outerHTML = `<i data-lucide="${isOpen ? 'chevron-up' : 'chevron-down'}"></i>`;
+                const chevron = document.getElementById(`toggle-${widgetId}`).querySelector('.toggle-chevron');
+                if (chevron) {
+                    chevron.outerHTML = `<i data-lucide="${isOpen ? 'chevron-up' : 'chevron-down'}" class="toggle-chevron"></i>`;
+                }
                 lucide.createIcons();
             };
             
@@ -221,10 +240,18 @@
         };
         
         function initDashboard(userId) {
-            initCourseSchedule(userId);
-            initTaskTracker(userId);
-            initJobAppCenter(userId);
-            initJournalAndGoals(userId);
+            // A map to ensure widgets are only initialized once
+            if (!window.dashboardInitialized) {
+                window.dashboardInitialized = new Set();
+            }
+
+            if (!window.dashboardInitialized.has(userId)) {
+                initCourseSchedule(userId);
+                initTaskTracker(userId);
+                initJobAppCenter(userId);
+                initJournalAndGoals(userId);
+                window.dashboardInitialized.add(userId);
+            }
         }
 
         // 1. Course Schedule
@@ -238,9 +265,20 @@
             
             const dayAbbreviations = { Monday: 'M', Tuesday: 'T', Wednesday: 'W', Thursday: 'Th', Friday: 'F' };
 
+            // --- STATE FOR SCHEDULE ---
+            let currentSemester = 'fall2025';
+            let scheduleUnsubscribe = null;
+
+            const semesterSelector = `
+                <div class="flex justify-center gap-2 mb-4" id="semester-selector-${userId}">
+                    <button data-semester="fall2025" class="semester-btn w-full p-2 rounded-lg font-bold bg-purple-600 transition-colors">Fall 2025</button>
+                    <button data-semester="spring2026" class="semester-btn w-full p-2 rounded-lg font-bold bg-gray-700 hover:bg-gray-600 transition-colors">Spring 2026</button>
+                </div>
+            `;
+
             const formContent = `
-                <form id="add-course-form" class="flex flex-wrap gap-4 mb-6 items-end">
-                    <div class="flex-grow min-w-[200px]">
+                <form id="add-course-form-${userId}" class="flex flex-wrap gap-4 mb-6 items-end">
+                    <div class="flex-grow min-w-[150px] sm:min-w-[200px]">
                         <label for="courseName" class="text-xs font-semibold text-gray-400">Class / Event Name</label>
                         <input type="text" id="courseName" name="name" placeholder="e.g. Torts" class="w-full mt-1 p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm" required />
                     </div>
@@ -297,16 +335,16 @@
                             }).join('')}
                         </div>
                         <!-- Day Columns -->
-                        ${days.map(day => `<div id="schedule-col-${day}" class="day-column relative border-l border-gray-700 h-full"></div>`).join('')}
+                        ${days.map(day => `<div id="schedule-col-${day}-${userId}" class="day-column relative border-l border-gray-700 h-full"></div>`).join('')}
                     </div>
                 </div>
             `;
 
-            const widget = createWidget('Class Schedule', 'book-open', formContent + scheduleGridContent, true);
+            const widget = createWidget('Class Schedule', 'book-open', semesterSelector + formContent + scheduleGridContent, true);
             container.innerHTML = widget.html;
             document.getElementById(`toggle-${widget.id}`).addEventListener('click', () => widget.toggle(container));
 
-            document.getElementById('add-course-form').addEventListener('submit', async (e) => {
+            document.getElementById(`add-course-form-${userId}`).addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const form = e.target;
                 const selectedDays = Array.from(form.querySelectorAll('input[name="day"]:checked')).map(cb => cb.value);
@@ -326,75 +364,111 @@
                         endTime: form.endTime.value,
                         day: day,
                         groupId: courseGroupId,
-                        type: type
+                        type: type,
+                        semester: currentSemester // Add semester field
                     });
                 });
                 await batch.commit();
                 form.reset();
             });
 
-            onSnapshot(scheduleCollectionRef, (snapshot) => {
-                // Clear existing blocks
-                days.forEach(day => document.getElementById(`schedule-col-${day}`).innerHTML = '');
-
-                snapshot.docs.forEach(docSnap => {
-                    const course = { id: docSnap.id, ...docSnap.data() };
-                    if (!course.startTime || !course.endTime) return;
-                    
-                    const start = new Date(`1970-01-01T${course.startTime}`);
-                    const end = new Date(`1970-01-01T${course.endTime}`);
-                    
-                    const startMinutes = (start.getHours() * 60 + start.getMinutes()) - (scheduleStartHour * 60);
-                    const endMinutes = (end.getHours() * 60 + end.getMinutes()) - (scheduleStartHour * 60);
-
-                    const duration = endMinutes - startMinutes;
-
-                    if (duration <= 0) return;
-                    
-                    const isClass = course.type !== 'Misc';
-                    const bgColor = isClass ? 'bg-purple-800' : 'bg-blue-800';
-                    const borderColor = isClass ? 'border-purple-400' : 'border-blue-400';
-
-                    const courseBlock = document.createElement('div');
-                    courseBlock.className = `absolute w-full p-2 text-left ${bgColor} bg-opacity-70 border-l-4 ${borderColor} rounded-r-lg overflow-hidden flex flex-col`;
-                    courseBlock.style.top = `${startMinutes * (hourHeight / 60)}px`;
-                    courseBlock.style.height = `${duration * (hourHeight / 60)}px`;
-                    
-                    const formattedStartTime = start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                    const formattedEndTime = end.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-                    courseBlock.innerHTML = `
-                        <p class="font-bold text-xs">${course.name}</p>
-                        <p class="text-xs text-gray-300">${formattedStartTime} - ${formattedEndTime}</p>
-                        ${course.room ? `<p class="text-xs text-gray-300 mt-1">Room: ${course.room}</p>` : ''}
-                        <button class="delete-course absolute top-1 right-1" data-group-id="${course.groupId}">
-                            <i data-lucide="trash-2" class="w-3 h-3 text-red-400 hover:text-red-300"></i>
-                        </button>
-                    `;
-                    
-                    const dayColumn = document.getElementById(`schedule-col-${course.day}`);
-                    if (dayColumn) {
-                        dayColumn.appendChild(courseBlock);
-                    }
-                });
+            function setupScheduleListener() {
+                if (scheduleUnsubscribe) {
+                    scheduleUnsubscribe();
+                }
                 
-                document.querySelectorAll('.delete-course').forEach(button => {
-                    button.addEventListener('click', async (e) => {
-                        e.stopPropagation();
-                        const groupId = e.currentTarget.dataset.groupId;
-                        if (!confirm('Delete this event from all scheduled days?')) return;
+                const q = query(scheduleCollectionRef);
+
+                scheduleUnsubscribe = onSnapshot(q, (snapshot) => {
+                    // Clear existing blocks
+                    days.forEach(day => document.getElementById(`schedule-col-${day}-${userId}`).innerHTML = '');
+
+                    snapshot.docs.forEach(docSnap => {
+                        const course = { id: docSnap.id, ...docSnap.data() };
                         
-                        const q = query(scheduleCollectionRef, where("groupId", "==", groupId));
-                        const querySnapshot = await getDocs(q);
-                        const deleteBatch = writeBatch(db);
-                        querySnapshot.forEach((doc) => {
-                            deleteBatch.delete(doc.ref);
-                        });
-                        await deleteBatch.commit();
+                        // Filter for the current semester
+                        const courseSemester = course.semester || 'fall2025'; // Default to fall2025 if not set
+                        if (courseSemester !== currentSemester) return;
+
+                        if (!course.startTime || !course.endTime) return;
+                        
+                        const start = new Date(`1970-01-01T${course.startTime}`);
+                        const end = new Date(`1970-01-01T${course.endTime}`);
+                        
+                        const startMinutes = (start.getHours() * 60 + start.getMinutes()) - (scheduleStartHour * 60);
+                        const endMinutes = (end.getHours() * 60 + end.getMinutes()) - (scheduleStartHour * 60);
+
+                        const duration = endMinutes - startMinutes;
+
+                        if (duration <= 0) return;
+                        
+                        const isClass = course.type !== 'Misc';
+                        const bgColor = isClass ? 'bg-purple-800' : 'bg-blue-800';
+                        const borderColor = isClass ? 'border-purple-400' : 'border-blue-400';
+
+                        const courseBlock = document.createElement('div');
+                        courseBlock.className = `absolute w-full p-2 text-left ${bgColor} bg-opacity-70 border-l-4 ${borderColor} rounded-r-lg overflow-hidden flex flex-col`;
+                        courseBlock.style.top = `${startMinutes * (hourHeight / 60)}px`;
+                        courseBlock.style.height = `${duration * (hourHeight / 60)}px`;
+                        
+                        const formattedStartTime = start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        const formattedEndTime = end.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                        courseBlock.innerHTML = `
+                            <p class="font-bold text-xs">${course.name}</p>
+                            <p class="text-xs text-gray-300">${formattedStartTime} - ${formattedEndTime}</p>
+                            ${course.room ? `<p class="text-xs text-gray-300 mt-1">Room: ${course.room}</p>` : ''}
+                            <button class="delete-course absolute top-1 right-1" data-group-id="${course.groupId}">
+                                <i data-lucide="trash-2" class="w-3 h-3 text-red-400 hover:text-red-300"></i>
+                            </button>
+                        `;
+                        
+                        const dayColumn = document.getElementById(`schedule-col-${course.day}-${userId}`);
+                        if (dayColumn) {
+                            dayColumn.appendChild(courseBlock);
+                        }
                     });
+                    
+                    document.querySelectorAll('.delete-course').forEach(button => {
+                        button.addEventListener('click', async (e) => {
+                            e.stopPropagation();
+                            const groupId = e.currentTarget.dataset.groupId;
+                            if (!confirm('Delete this event from all scheduled days?')) return;
+                            
+                            const qDelete = query(scheduleCollectionRef, where("groupId", "==", groupId));
+                            const querySnapshot = await getDocs(qDelete);
+                            const deleteBatch = writeBatch(db);
+                            querySnapshot.forEach((doc) => {
+                                deleteBatch.delete(doc.ref);
+                            });
+                            await deleteBatch.commit();
+                        });
+                    });
+                    lucide.createIcons();
                 });
-                lucide.createIcons();
+            }
+
+            document.getElementById(`semester-selector-${userId}`).addEventListener('click', (e) => {
+                if (e.target.classList.contains('semester-btn')) {
+                    const selectedSemester = e.target.dataset.semester;
+                    if (selectedSemester === currentSemester) return;
+
+                    currentSemester = selectedSemester;
+
+                    document.querySelectorAll(`#semester-selector-${userId} .semester-btn`).forEach(btn => {
+                        if (btn.dataset.semester === currentSemester) {
+                            btn.classList.remove('bg-gray-700', 'hover:bg-gray-600');
+                            btn.classList.add('bg-purple-600');
+                        } else {
+                            btn.classList.add('bg-gray-700', 'hover:bg-gray-600');
+                            btn.classList.remove('bg-purple-600');
+                        }
+                    });
+                    setupScheduleListener();
+                }
             });
+
+            setupScheduleListener();
         }
         
         // 2. Task Tracker
@@ -410,18 +484,18 @@
                 </form>
                 <div id="task-lists"></div>
             `;
-            const widget = createWidget('Case Readings & Tasks', 'check', content, true);
+            const widget = createWidget('Case Readings & Tasks', 'check-square', content, true);
             container.innerHTML = widget.html;
             document.getElementById(`toggle-${widget.id}`).addEventListener('click', () => widget.toggle(container));
 
             document.getElementById('add-task-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const form = e.target;
-                await addDoc(tasksCollectionRef, { text: form.text.value, done: false });
+                await addDoc(tasksCollectionRef, { text: form.text.value, done: false, createdAt: new Date() });
                 form.reset();
             });
 
-            onSnapshot(tasksCollectionRef, (snapshot) => {
+            onSnapshot(query(tasksCollectionRef, orderBy("createdAt", "desc")), (snapshot) => {
                 const tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 const activeTasks = tasks.filter(t => !t.done);
                 const archivedTasks = tasks.filter(t => t.done);
@@ -431,17 +505,17 @@
                     <div class="space-y-4">
                         <h3 class="font-bold mb-2">To-Do</h3>
                         <ul class="space-y-2">
-                            ${activeTasks.map(task => `
+                            ${activeTasks.length > 0 ? activeTasks.map(task => `
                                 <li class="flex items-center gap-3 p-2 rounded-md hover:bg-gray-800 transition-colors">
                                     <button class="toggle-task" data-id="${task.id}" data-done="${task.done}"><div class="w-5 h-5 rounded border-2 border-gray-500"></div></button>
                                     <span>${task.text}</span>
                                     <button class="delete-task ml-auto" data-id="${task.id}"><i data-lucide="trash-2" class="w-4 h-4 text-red-500 hover:text-red-400"></i></button>
                                 </li>
-                            `).join('')}
+                            `).join('') : '<p class="text-sm text-gray-500">No active tasks. Add one above!</p>'}
                         </ul>
                         <div>
-                            <button id="toggle-archive" class="font-bold mb-2 flex items-center gap-2">
-                                <i data-lucide="archive" class="w-4 h-4"></i> Archived (${archivedTasks.length}) <i data-lucide="${showArchived ? 'chevron-up' : 'chevron-down'}"></i>
+                            <button id="toggle-archive" class="font-bold mb-2 flex items-center gap-2 text-sm text-gray-400 hover:text-gray-200">
+                                <i data-lucide="archive" class="w-4 h-4"></i> Archived (${archivedTasks.length}) <i data-lucide="${showArchived ? 'chevron-up' : 'chevron-down'}" class="ml-1"></i>
                             </button>
                             <ul id="archive-list" class="space-y-2 mt-2 ${showArchived ? '' : 'hidden'}">
                                 ${archivedTasks.map(task => `
@@ -459,7 +533,7 @@
                 document.getElementById('toggle-archive').addEventListener('click', () => {
                     showArchived = !showArchived;
                     document.getElementById('archive-list').classList.toggle('hidden');
-                    document.querySelector('#toggle-archive [data-lucide]').outerHTML = `<i data-lucide="${showArchived ? 'chevron-up' : 'chevron-down'}"></i>`;
+                    document.querySelector('#toggle-archive i:last-child').outerHTML = `<i data-lucide="${showArchived ? 'chevron-up' : 'chevron-down'}" class="ml-1"></i>`;
                     lucide.createIcons();
                 });
 
@@ -518,6 +592,10 @@
 
             onSnapshot(query(appsCollectionRef, orderBy("date", "desc")), (snapshot) => {
                 const appList = document.getElementById('app-list');
+                if (snapshot.empty) {
+                    appList.innerHTML = '<p class="text-sm text-gray-500">No job applications tracked yet.</p>';
+                    return;
+                }
                 appList.innerHTML = snapshot.docs.map(docSnap => {
                     const app = { id: docSnap.id, ...docSnap.data() };
                     return `
@@ -553,8 +631,16 @@
             const goalsCollectionRef = collection(db, 'artifacts', appId, 'users', userId, 'goals');
             const journalCollectionRef = collection(db, 'artifacts', appId, 'users', userId, 'journal_entries');
 
+            const converter = new showdown.Converter({
+                simplifiedAutoLink: true,
+                strikethrough: true,
+                tables: true,
+                tasklists: true,
+                simpleLineBreaks: true
+            });
+
             const content = `
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <!-- Goals -->
                     <div>
                         <h3 class="text-lg font-bold mb-3 flex items-center gap-2"><i data-lucide="target" class="text-blue-400"></i> Career & Academic Goals</h3>
@@ -568,7 +654,7 @@
                     <div>
                         <h3 class="text-lg font-bold mb-3">Journal & AI Assistant</h3>
                         <form id="add-entry-form">
-                            <textarea id="journal-textarea" name="text" placeholder="Write your thoughts down, or get some input from an AI assistant..." class="w-full p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 h-32 resize-none mb-2" required></textarea>
+                            <textarea id="journal-textarea" name="text" placeholder="Write your thoughts down using Markdown, or get some input from an AI assistant..." class="w-full p-3 bg-gray-800 bg-opacity-70 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 h-32 resize-none mb-2" required></textarea>
                             <div class="flex gap-2">
                                 <button type="submit" class="w-full p-3 bg-purple-600 hover:bg-purple-700 rounded-lg font-bold">Save Entry</button>
                                 <button type="button" id="ai-assistant-button" class="w-full p-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-bold flex items-center justify-center gap-2">
@@ -635,11 +721,7 @@
 
                 } catch (error) {
                     console.error("AI Assistant Error:", error);
-                    let errorMessage = "An unknown error occurred. Please check the browser's developer console for more details.";
-                    if (error && error.message) {
-                        errorMessage = error.message;
-                    }
-                    alert(`An error occurred: ${errorMessage}`);
+                    alert(`An error occurred: ${error.message}`);
                 } finally {
                     aiLoader.classList.add('hidden');
                     aiButtonText.textContent = "AI Assistant";
@@ -656,6 +738,10 @@
             });
             onSnapshot(goalsCollectionRef, snapshot => {
                 const goalList = document.getElementById('goal-list');
+                if (snapshot.empty) {
+                    goalList.innerHTML = '<p class="text-sm text-gray-500">No goals set yet.</p>';
+                    return;
+                }
                 goalList.innerHTML = snapshot.docs.map(docSnap => {
                     const goal = { id: docSnap.id, ...docSnap.data() };
                     return `
@@ -681,7 +767,6 @@
             document.getElementById('add-entry-form').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const form = e.target;
-                // Check which button was clicked if you have multiple submit buttons
                 if (document.activeElement.id === 'ai-assistant-button') return;
 
                 await addDoc(journalCollectionRef, {
@@ -692,15 +777,20 @@
             });
             onSnapshot(query(journalCollectionRef, orderBy("date", "desc")), snapshot => {
                 const entryList = document.getElementById('entry-list');
+                if (snapshot.empty) {
+                    entryList.innerHTML = '<p class="text-sm text-gray-500">No journal entries yet.</p>';
+                    return;
+                }
                 entryList.innerHTML = snapshot.docs.map(docSnap => {
                     const entry = { id: docSnap.id, ...docSnap.data() };
+                    const htmlContent = converter.makeHtml(entry.text);
                     return `
                         <div class="p-3 bg-gray-800 bg-opacity-40 rounded-lg">
-                            <div class="flex justify-between items-center mb-1">
+                            <div class="flex justify-between items-center mb-2">
                                 <p class="text-xs font-semibold text-purple-300">${new Date(entry.date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
                                 <button class="delete-entry" data-id="${entry.id}"><i data-lucide="trash-2" class="w-4 h-4 text-red-500 hover:text-red-400"></i></button>
                             </div>
-                            <p class="text-sm whitespace-pre-wrap">${entry.text}</p>
+                            <div class="prose text-gray-300 max-w-none">${htmlContent}</div>
                         </div>
                     `;
                 }).join('');
